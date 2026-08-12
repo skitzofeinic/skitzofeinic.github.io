@@ -1,0 +1,366 @@
+---
+import "../styles/global.css";
+---
+
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+        <link id="favicon" rel="icon" href="/favicon-light.ico" />
+
+        <title>portfolio | nguyen anh le</title>
+
+        <script is:inline>
+            (function () {
+                const storedTheme = localStorage.getItem("theme");
+
+                const theme =
+                    storedTheme ||
+                    ("matchMedia" in window &&
+                    window.matchMedia("(prefers-color-scheme: dark)").matches
+                        ? "dark"
+                        : "light");
+
+                const root = document.documentElement;
+
+                root.setAttribute("data-theme", theme);
+                root.classList.toggle("dark", theme === "dark");
+
+                const favicon = document.getElementById("favicon");
+                if (favicon) {
+                    favicon.href =
+                        theme === "dark"
+                            ? "/favicon-dark.ico"
+                            : "/favicon-light.ico";
+                }
+            })();
+        </script>
+    </head>
+
+    <body class="preload font-mono">
+        <div class="flex flex-col min-h-screen">
+            <!-- HEADER -->
+            <header
+                class="theme-sync fixed top-0 left-0 right-0 min-h-32 p-6 md:p-8 z-20 transition-colors duration-300 delay-200"
+                style="background-color: var(--color-background);"
+            >
+                <div class="flex justify-between items-center gap-8 font-doto">
+                    <h1 class="text-4xl md:text-5xl font-light tracking-wide">
+                        PORTFOLIO
+                    </h1>
+
+                    <div class="flex items-center gap-4">
+                        <!-- MORSE (desktop only) -->
+                        <h1
+                            id="morse"
+                            class="hidden lg:block text-4xl md:text-5xl font-light tracking-wide font-doto"
+                        >
+                            - -.-- .--. . / -.-. .- - - ---
+                        </h1>
+
+                        <!-- HAMBURGER (mobile only) -->
+                        <button id="menu-toggle" class="md:hidden text-2xl">
+                            ☰
+                        </button>
+                    </div>
+                </div>
+
+                <small class="text-xs md:text-sm">
+                    NGUYÉN ANH LÊ
+                </small>
+            </header>
+
+            <!-- MAIN -->
+            <div class="flex flex-1 pt-32 pb-20">
+                <!-- SIDEBAR -->
+                <nav
+                    id="nav-main"
+                    class="theme-sync hidden md:flex md:flex-col w-48 p-6 md:p-8 fixed left-0 top-32 bottom-20 transition-colors duration-300 delay-500"
+                    style="background-color: var(--color-background);"
+                >
+                    <div class="flex flex-col gap-4">
+                        <h1 class="text-2xl">navigation</h1>
+
+                        <ul class="flex flex-col gap-3 text-sm">
+                            <li><a href="/" class="nav-link">about me</a></li>
+
+                            <li
+                                class="nav-group flex flex-col gap-1"
+                                data-group="experience"
+                            >
+                                <a
+                                    href="/experiences/education"
+                                    class="nav-link">experience</a
+                                >
+                                <ul class="nav-sublinks">
+                                    <li>
+                                        <a
+                                            href="/experiences/education"
+                                            class="nav-sublink">education</a
+                                        >
+                                    </li>
+                                    <li>
+                                        <a
+                                            href="/experiences/professional"
+                                            class="nav-sublink">professional</a
+                                        >
+                                    </li>
+                                </ul>
+                            </li>
+
+                            <li
+                                class="nav-group flex flex-col gap-1"
+                                data-group="projects"
+                            >
+                                <a href="/projects/personal" class="nav-link"
+                                    >projects</a
+                                >
+                                <ul class="nav-sublinks">
+                                    <li>
+                                        <a
+                                            href="/projects/personal"
+                                            class="nav-sublink">personal</a
+                                        >
+                                    </li>
+                                    <li>
+                                        <a
+                                            href="/projects/school"
+                                            class="nav-sublink">school</a
+                                        >
+                                    </li>
+                                </ul>
+                            </li>
+
+                            <li>
+                                <a href="/contacts" class="nav-link">contact</a>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+
+                <!-- CONTENT -->
+                <div
+                    class="theme-sync flex-1 md:ml-48 overflow-y-auto px-6 md:p-8 transition-colors duration-300 delay-800"
+                >
+                    <slot />
+                </div>
+            </div>
+
+            <!-- FOOTER -->
+            <footer
+                class="theme-sync fixed bottom-0 left-0 right-0 h-20 p-6 md:p-8 flex flex-row justify-between items-center gap-4 text-sm z-20 transition-colors duration-300 delay-600"
+                style="background-color: var(--color-background);"
+            >
+                <button id="theme-toggle" class="theme-button">
+                    light mode
+                </button>
+
+                <ul class="flex gap-6" style="text-decoration: underline">
+                    <li>
+                        <a
+                            href="https://www.linkedin.com/in/anh-le-95b840348/"
+                            target="_blank">linkedin</a
+                        >
+                    </li>
+                    <li>
+                        <a
+                            href="https://github.com/skitzofeinic"
+                            target="_blank">github</a
+                        >
+                    </li>
+                    <li><a href="mailto:anhle261137@gmail.com">gmail</a></li>
+                    <li><a href="/cv">cv</a></li>
+                </ul>
+            </footer>
+        </div>
+
+        <!-- JS -->
+        <script>
+            const header = document.querySelector("header");
+            const sidebar = document.getElementById("nav-main");
+            const mainContent = document.querySelector(".flex.flex-1");
+
+            const syncHeaderHeight = () => {
+                if (!header) return;
+                const h = header.offsetHeight;
+                if (sidebar) sidebar.style.top = `${h}px`;
+                if (mainContent)
+                    (mainContent as HTMLElement).style.paddingTop = `${h}px`;
+            };
+
+            new ResizeObserver(syncHeaderHeight).observe(header!);
+            syncHeaderHeight();
+
+            function updateThemeUI(theme: string) {
+                const button = document.getElementById("theme-toggle");
+                if (!button) return;
+
+                button.textContent =
+                    theme === "dark" ? "zaffre mode" : "silver mode";
+            }
+
+            function updateFavicon(theme: string) {
+                const favicon = document.getElementById(
+                    "favicon",
+                ) as HTMLLinkElement | null;
+                if (!favicon) return;
+
+                favicon.href =
+                    theme === "dark"
+                        ? "/favicon-dark.ico"
+                        : "/favicon-light.ico";
+            }
+
+            function applyTheme(theme: string) {
+                const root = document.documentElement;
+
+                root.setAttribute("data-theme", theme);
+                root.classList.toggle("dark", theme === "dark");
+                localStorage.setItem("theme", theme);
+
+                updateThemeUI(theme);
+                updateFavicon(theme);
+            }
+
+            function initTheme() {
+                const stored = localStorage.getItem("theme");
+
+                const theme =
+                    stored ||
+                    (window.matchMedia?.("(prefers-color-scheme: dark)").matches
+                        ? "dark"
+                        : "light");
+
+                applyTheme(theme);
+            }
+
+            document
+                .getElementById("theme-toggle")
+                ?.addEventListener("click", () => {
+                    const current =
+                        document.documentElement.getAttribute("data-theme") ||
+                        "light";
+                    const next = current === "dark" ? "light" : "dark";
+                    applyTheme(next);
+                });
+
+            initTheme();
+
+            function setActiveNav() {
+                const path = window.location.pathname;
+
+                /* reset all */
+                document
+                    .querySelectorAll(".nav-link, .nav-sublink, .nav-group")
+                    .forEach((el) => el.classList.remove("active"));
+
+                /* 1. handle standalone links (no subnav) */
+                document.querySelectorAll(".nav-link").forEach((link) => {
+                    const href = link.getAttribute("href");
+                    if (!href) return;
+
+                    const isStandalone = !link.closest(".nav-group");
+
+                    if (isStandalone && path === href) {
+                        link.classList.add("active");
+                    }
+                });
+
+                /* 2. handle subnav logic */
+                document.querySelectorAll(".nav-sublink").forEach((link) => {
+                    const href = link.getAttribute("href");
+                    if (!href) return;
+
+                    const isActive = path === href;
+
+                    link.classList.toggle("active", isActive);
+
+                    if (isActive) {
+                        const group = link.closest(".nav-group");
+                        group?.classList.add("active");
+                    }
+                });
+            }
+
+            document.addEventListener("DOMContentLoaded", setActiveNav);
+            window.addEventListener("popstate", setActiveNav);
+
+            const menuToggle = document.getElementById("menu-toggle");
+            const nav = document.getElementById("nav-main");
+
+            function toggleMobileNav() {
+                if (!nav) return;
+
+                nav.classList.toggle("mobile-open");
+                document.body.classList.toggle("no-scroll");
+            }
+
+            menuToggle?.addEventListener("click", toggleMobileNav);
+
+            function closeNav() {
+                nav?.classList.remove("mobile-open");
+                document.body.classList.remove("no-scroll");
+            }
+
+            /* close when clicking background ONLY */
+            nav?.addEventListener("click", (e) => {
+                if (e.target === nav) {
+                    closeNav();
+                }
+            });
+
+            /* close when clicking ANY navigation link */
+            document.querySelectorAll("#nav-main a").forEach((link) => {
+                link.addEventListener("click", () => {
+                    closeNav();
+                });
+            });
+
+            /* escape key */
+            document.addEventListener("keydown", (e) => {
+                if (e.key === "Escape") closeNav();
+            });
+
+            nav?.addEventListener("click", (e) => {
+                if (e.target === nav) {
+                    nav.classList.remove("mobile-open");
+                    document.body.classList.remove("no-scroll");
+                }
+            });
+
+            const output = document.getElementById("morse");
+            const originalText = output?.textContent ?? "";
+
+            let buffer = "";
+            const secret = "catto";
+
+            document.addEventListener("keydown", (e) => {
+                if (!output) return;
+
+                if (e.key === "Escape") {
+                    output.textContent = originalText;
+                    buffer = "";
+                    return;
+                }
+
+                if (e.key.length !== 1) return;
+
+                buffer += e.key.toLowerCase();
+
+                if (buffer.length > 20) {
+                    buffer = buffer.slice(-20);
+                }
+
+                if (buffer.includes(secret)) {
+                    output.innerHTML = `
+                <span class="cat-animate">
+                    <span class="cat-thumb">ദ്ദി</span>（• ˕ •マ.ᐟ
+                </span>
+            `;
+                    buffer = "";
+                }
+            });
+        </script>
+    </body>
+</html>
