@@ -28,6 +28,7 @@
 		background-color: var(--color-background);
 		color: var(--color-text);
 		font-family: var(--font-base);
+		overflow-x: hidden;
 	}
 
     h1 {
@@ -108,7 +109,7 @@
 
     .skills {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
         gap: 2rem;
         width: 100%;
         margin-top: 2rem;
@@ -141,7 +142,8 @@
 
         font-size: 0.85rem;
         line-height: 1;
-        white-space: nowrap;
+		white-space: normal;
+		overflow-wrap: anywhere;
 
         border: 1px solid var(--color-primary);
         color: var(--color-text);
