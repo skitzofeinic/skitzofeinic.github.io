@@ -85,20 +85,20 @@ import "../styles/global.css";
                                 data-group="experience"
                             >
                                 <a
-                                    href="/experiences/education"
+                                    href="/experiences/professional"
                                     class="nav-link">experience</a
                                 >
                                 <ul class="nav-sublinks">
                                     <li>
                                         <a
-                                            href="/experiences/education"
-                                            class="nav-sublink">education</a
+                                            href="/experiences/professional"
+                                            class="nav-sublink">professional</a
                                         >
                                     </li>
                                     <li>
                                         <a
-                                            href="/experiences/professional"
-                                            class="nav-sublink">professional</a
+                                            href="/experiences/education"
+                                            class="nav-sublink">educational</a
                                         >
                                     </li>
                                 </ul>
@@ -240,7 +240,7 @@ import "../styles/global.css";
             initTheme();
 
             function setActiveNav() {
-                const path = window.location.pathname.replace(/\/$/, "");
+                const path = window.location.pathname.replace(/\/$/, "") || "/";
 
                 /* reset all */
                 document
