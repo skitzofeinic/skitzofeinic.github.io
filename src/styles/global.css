@@ -137,9 +137,15 @@
 	 * they stay fixed.
 	 */
 	@media (max-width: 767px) and (min-height: 501px) {
+		/* 100lvh stops short of the strip by the home indicator, so overshoot it; locking the page keeps the extra from scrolling */
+		html {
+			overflow: hidden;
+		}
+
 		#backdrop,
 		body::after {
 			position: absolute;
+			height: calc(100lvh + 15rem);
 		}
 	}
 
