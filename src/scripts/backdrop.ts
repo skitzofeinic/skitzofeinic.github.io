@@ -33,6 +33,8 @@ const fieldShader = /* glsl */ `
 	uniform float uTime;
 	/* the smaller side of the full screen, so the shapes keep their size at any resolution */
 	uniform float uScreenMin;
+	/* the full screen width, so the bright blobs can favour the right side */
+	uniform float uScreenWidth;
 	/* a random offset per visit, so the shapes are arranged differently every time */
 	uniform vec2 uSeed;
 	/* extra animation time earned by moving the mouse, so the blobs flow while it moves */
@@ -70,15 +72,21 @@ const fieldShader = /* glsl */ `
 		/* back in full-screen pixels, so the shapes match the halftone pass */
 		vec2 pixel = gl_FragCoord.xy * ${FIELD_SCALE.toFixed(1)};
 		/* subtracting the drift moves the pattern the same way the mouse went */
-		vec2 uv = pixel / uScreenMin * 2.0 + uSeed - uDrift;
+		vec2 uv = pixel / uScreenMin * 2.8 + uSeed - uDrift;
 		/* a slow drift of its own, sped along by the mouse */
 		float t = uTime * 0.0006 + uFlow;
 
 		/* warping the noise through itself makes the large, liquid shapes */
 		vec2 warp = vec2(fbm(uv + t), fbm(uv - t + 4.0));
-		float field = fbm(uv + warp * 2.2 + vec2(t * 0.7, -t * 0.4));
+		float field = fbm(uv + warp * 1.5 + vec2(t * 0.7, -t * 0.4));
 
-		gl_FragColor = vec4(clamp((field - 0.15) / 0.32, 0.0, 1.0), 0.0, 0.0, 1.0);
+		/*
+		 * The offset sets where a bright blob forms. It rises to the right, so whole bright blobs
+		 * gather there, away from the text, while the left stays mostly dark.
+		 */
+		float across = pixel.x / uScreenWidth;
+		float offset = 0.03 + 0.08 * smoothstep(0.45, 1.0, across);
+		gl_FragColor = vec4(clamp((field - offset) / 0.32, 0.0, 1.0), 0.0, 0.0, 1.0);
 	}
 `;
 
@@ -90,6 +98,10 @@ const halftoneShader = /* glsl */ `
 	uniform vec3 uBackground;
 
 	const float SHADOW = 0.6;
+	/* how strongly the bright blobs catch the light on the side facing the top left */
+	const float SHEEN = 0.25;
+	/* and how deep they fall into shadow on the side facing away */
+	const float SHADE = 0.9;
 
 	float hash(vec2 p) {
 		return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
@@ -107,7 +119,7 @@ const halftoneShader = /* glsl */ `
 		 * dark dots on zaffre, tiny in the bright areas and merging into solid dark in the
 		 * deepest ones.
 		 */
-		vec2 grid = (pixel + 0.5) / 4.0;
+		vec2 grid = (pixel + 0.5) / 3.0;
 		vec2 diagonal = vec2(grid.x + grid.y, grid.x - grid.y) * 0.7071;
 		float distanceToDot = length(fract(diagonal) - 0.5);
 		float radius = 0.1 + 0.62 * shaped * shaped;
@@ -115,6 +127,20 @@ const halftoneShader = /* glsl */ `
 
 		/* deep shadows over the zaffre background */
 		vec3 colour = uBackground * (1.0 - level * SHADOW);
+
+		/*
+		 * Shading: light falls from the top left. Where the field gets darker towards the light,
+		 * this is a bright blob's lit edge, so the zaffre between its dots turns a paler blue;
+		 * on the edge facing away it sinks into a deeper blue instead.
+		 */
+		vec2 uv = gl_FragCoord.xy / uResolution;
+		vec2 toLight = vec2(-0.7071, 0.7071) * 16.0 / uResolution;
+		float slope = texture2D(uField, uv + toLight).r - texture2D(uField, uv - toLight).r;
+		float lit = clamp(slope * 4.0, 0.0, 1.0) * (1.0 - shaped) * (1.0 - level);
+		colour = mix(colour, mix(uBackground, vec3(1.0), 0.35), lit * SHEEN);
+		/* not capped early like the light, so steep blobs sink deep and gentle ones only a little */
+		float shadow = sqrt(clamp(-slope * 1.5, 0.0, 1.0)) * (1.0 - shaped) * (1.0 - level);
+		colour = mix(colour, uBackground * 0.25, shadow * SHADE);
 
 		/* faint scanlines: every other row a touch darker */
 		colour *= mod(pixel.y, 2.0) < 1.0 ? 0.88 : 1.0;
@@ -160,6 +186,7 @@ function startBackdrop(canvas: HTMLCanvasElement) {
 	const u = {
 		time: at(field, "uTime"),
 		screenMin: at(field, "uScreenMin"),
+		screenWidth: at(field, "uScreenWidth"),
 		seed: at(field, "uSeed"),
 		flow: at(field, "uFlow"),
 		drift: at(field, "uDrift"),
@@ -220,6 +247,7 @@ function startBackdrop(canvas: HTMLCanvasElement) {
 
 		gl.useProgram(field);
 		gl.uniform1f(u.screenMin, Math.min(width, height));
+		gl.uniform1f(u.screenWidth, width);
 		gl.useProgram(halftone);
 		gl.uniform2f(u.resolution, width, height);
 		/* redraw straight away, or the stretched old frame shows until the next tick */

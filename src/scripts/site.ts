@@ -682,7 +682,6 @@ navLinks.forEach((link) => {
 		const panel = document.querySelector<HTMLElement>(link.hash);
 		if (!panel) return;
 		e.preventDefault();
-		history.replaceState(null, "", link.hash);
 		goToPanel(phoneMode.matches ? pageContaining(panel) : panel);
 	});
 });
@@ -695,7 +694,6 @@ streakRail?.addEventListener("click", (e) => {
 	const target = page ?? document.querySelector<HTMLElement>(link.hash);
 	if (!target) return;
 	e.preventDefault();
-	history.replaceState(null, "", link.hash);
 	goToPanel(target);
 });
 
@@ -753,10 +751,14 @@ document.querySelectorAll<HTMLButtonElement>("[data-copy]").forEach((button) => 
 		try {
 			await navigator.clipboard.writeText(button.dataset.copy ?? "");
 			button.textContent = "copied";
+			button.classList.add("copied");
 		} catch {
 			button.textContent = "press ctrl+c";
 		}
-		setTimeout(() => (button.textContent = "copy"), 1600);
+		setTimeout(() => {
+			button.textContent = "copy";
+			button.classList.remove("copied");
+		}, 1600);
 	});
 });
 

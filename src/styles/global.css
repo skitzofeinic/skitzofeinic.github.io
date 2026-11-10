@@ -147,10 +147,31 @@
 		color: var(--color-background);
 		background: var(--color-text);
 		transform: translateY(-200%);
+		/* Safari's see-through top bar shows what sits just above the page */
+		opacity: 0;
 	}
 
-	.skip-link:focus {
+	.skip-link:focus-visible {
 		transform: none;
+		opacity: 1;
+	}
+
+	/*
+	 * The page runs under Safari's bars and the notch (viewport-fit=cover), so the backdrop
+	 * fills the screen; the header and footer keep their content clear of them with empty
+	 * borders, which count in their measured heights.
+	 */
+	header {
+		border-top: env(safe-area-inset-top) solid transparent;
+	}
+
+	footer {
+		border-bottom: env(safe-area-inset-bottom) solid transparent;
+	}
+
+	/* landscape phones: clear of the notch */
+	body {
+		padding-inline: env(safe-area-inset-left) env(safe-area-inset-right);
 	}
 
 	::selection {
@@ -358,6 +379,16 @@
 
 	.entry > :not(.label) {
 		grid-column: 2;
+	}
+
+	/* experience and education: room between entries; the timeline lines measure from the top, so they still meet */
+	.timeline .entry {
+		padding-bottom: 1.75rem;
+	}
+
+	/* the smaller size the coursework tools use */
+	.timeline .entry > .entry-tools {
+		font-size: 0.75rem;
 	}
 
 	/*
@@ -630,12 +661,16 @@
 		gap: 1rem;
 	}
 
+	/* a column, so the email tile's copy strip sits under its link and every tile stays as tall */
 	.contact-tile {
 		position: relative;
+		display: flex;
+		flex-direction: column;
 		border: 1px solid color-mix(in srgb, var(--color-hr) 25%, transparent);
 	}
 
-	.contact-tile:hover {
+	/* the link, not the copy strip, turns the tile red */
+	.contact-tile:has(a:hover) {
 		border-color: var(--color-link-hover);
 	}
 
@@ -644,9 +679,9 @@
 	}
 
 	/* everything in the tile takes the red every link gets on hover */
-	.contact-tile:hover a,
-	.contact-tile:hover a .label,
-	.contact-tile:hover a .contact-value {
+	.contact-tile a:hover,
+	.contact-tile a:hover .label,
+	.contact-tile a:hover .contact-value {
 		color: var(--color-link-hover) !important;
 	}
 
@@ -654,18 +689,18 @@
 		transition: transform 0.2s steps(2);
 	}
 
-	.contact-tile:hover a::after {
+	.contact-tile a:hover::after {
 		opacity: 1;
 		transform: translate(3px, -3px);
 	}
 
-	/* red only under the pointer, like any link, not when the tile around it is hovered */
+	/* red only under the pointer, like any link */
 	.copy-button:hover {
 		color: var(--color-link-hover);
-		border-color: var(--color-link-hover);
 	}
 
 	.contact-tile a {
+		flex: 1;
 		display: flex;
 		flex-direction: column;
 		justify-content: space-between;
@@ -693,18 +728,34 @@
 		overflow-wrap: anywhere;
 	}
 
-	/* sits in the corner of the email tile, next to its arrow */
-	/* phones: a compact two by two grid, so the whole contact section fits on one screen */
+	/* wider screens: the label stays top left, the value and its copy action sit bottom right */
+	@media (min-width: 768px) {
+		.contact-value {
+			align-self: flex-end;
+			text-align: right;
+		}
+
+		.copy-button {
+			justify-content: flex-end;
+		}
+	}
+
+	/* phones: one full-width row each, label over value, so all four fit one screen and the email never breaks */
 	@media (max-width: 767px) {
 		.contact-tiles {
-			grid-template-columns: repeat(2, minmax(0, 1fr));
-			gap: 0.6rem;
+			grid-template-columns: minmax(0, 1fr);
+			gap: 0.5rem;
+		}
+
+		.contact-tile {
+			flex-direction: row;
 		}
 
 		.contact-tile a {
-			min-height: 8rem;
-			gap: 1rem;
-			padding: 0.75rem 0.8rem 0.9rem;
+			justify-content: center;
+			gap: 0.2rem;
+			min-height: 0;
+			padding: 0.7rem 2.25rem 0.75rem 0.8rem;
 		}
 
 		.contact-value {
@@ -712,27 +763,72 @@
 		}
 
 		.contact-tile a::after {
-			top: 0.6rem;
-			right: 0.7rem;
+			top: 50%;
+			right: 0.8rem;
+			translate: 0 -50%;
 		}
 	}
 
-	/* a bigger target than a bare word, so it is easy to hit */
-	.contact-tile .copy-button {
-		position: absolute;
-		z-index: 1;
-		top: 0.55rem;
-		right: 2.6rem;
-		padding: 0.45rem 0.9rem;
-	}
-
+	/* a strip along the bottom of the tile, in the label style, split off by a hairline like the dividers */
 	.copy-button {
-		padding: 0.2rem 0.6rem;
-		font-size: 0.8125rem;
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+		padding: 0.6rem 1.25rem;
+		font-size: 0.75rem;
 		letter-spacing: 0.08em;
 		text-transform: uppercase;
-		color: var(--color-text);
-		border: 1px solid color-mix(in srgb, var(--color-hr) 35%, transparent);
+		color: var(--color-label);
+		border-top: 1px solid color-mix(in srgb, var(--color-hr) 25%, transparent);
+	}
+
+	/* the site's hollow diamond; it lights up signal green once the address is copied */
+	.copy-button::before {
+		content: "";
+		width: 6px;
+		height: 6px;
+		border: 1px solid currentColor;
+		transform: rotate(45deg);
+		transition: background-color 0.15s steps(2);
+	}
+
+	.copy-button.copied {
+		color: var(--color-available);
+	}
+
+	.copy-button.copied::before {
+		background: currentColor;
+	}
+
+	/* wider screens: floats just above the value's right end, however it wraps (a strip without anchor support) */
+	@supports (anchor-name: --a) {
+		@media (min-width: 768px) {
+			.contact-tile:has(.copy-button) .contact-value {
+				anchor-name: --copy-value;
+			}
+
+			.copy-button {
+				position: absolute;
+				z-index: 1;
+				right: 1.25rem;
+				bottom: calc(anchor(--copy-value top) + 0.75rem);
+				padding: 0.85rem 1.25rem;
+				font-size: 0.8125rem;
+				border: 1px solid color-mix(in srgb, currentColor 55%, transparent);
+			}
+		}
+	}
+
+	/* phones: a cell at the end of the email row instead of a strip under it */
+	@media (max-width: 767px) {
+		.copy-button {
+			min-width: 5.5rem;
+			padding: 0 0.9rem;
+			justify-content: center;
+			border-top: none;
+			border-left: 1px solid color-mix(in srgb, var(--color-hr) 25%, transparent);
+		}
 	}
 
 
@@ -743,6 +839,11 @@
 
 		.entries-index .entry > .entry-text {
 			white-space: normal;
+		}
+
+		/* stacked under the text on phones, so it needs the same gap as everywhere else */
+		.entries-index .entry > .entry-tools {
+			margin-top: 0.6rem;
 		}
 	}
 
@@ -872,7 +973,7 @@
 	}
 
 	.entry-tools {
-		margin-top: 0.25rem;
+		margin-top: 0.6rem;
 		font-size: 0.8125rem;
 		line-height: 1.5;
 		color: color-mix(in srgb, var(--color-text) 75%, transparent);
@@ -892,20 +993,17 @@
 		}
 	}
 
-	/* phones stack the facts, so they get room and a divider each, like the entries */
+	/* phones stack the facts as outlined boxes, the same outline as the contact tiles */
 	@media (max-width: 767px) {
 		/* always one under the other, however wide the phone */
 		.facts {
 			grid-template-columns: minmax(0, 1fr);
-			gap: 0;
+			gap: 0.5rem;
 		}
 
 		.facts > div {
-			padding-block: 0.9rem;
-		}
-
-		.facts > div + div {
-			border-top: 1px solid color-mix(in srgb, var(--color-hr) 15%, transparent);
+			padding: 0.75rem 0.9rem 0.85rem;
+			border: 1px solid color-mix(in srgb, var(--color-hr) 25%, transparent);
 		}
 	}
 
@@ -1139,7 +1237,7 @@
 			position: fixed;
 			top: var(--header-h, 8rem);
 			right: 0;
-			bottom: 5rem;
+			bottom: calc(5rem + env(safe-area-inset-bottom));
 			left: 0;
 			overflow-y: auto;
 			overscroll-behavior: contain;
@@ -1229,7 +1327,7 @@
 			top: var(--header-h, 6rem);
 			right: 0;
 			/* the phone footer is two rows: the sign-off, then the links */
-			bottom: 4.75rem;
+			bottom: calc(4.75rem + env(safe-area-inset-bottom));
 			left: 0;
 			overflow-y: auto;
 			overscroll-behavior: contain;
