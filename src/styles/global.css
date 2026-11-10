@@ -324,9 +324,9 @@
 		text-transform: uppercase;
 	}
 
-	/* phones stack the footer: the sign-off on top (without the clock), the links under it */
+	/* phones: just the links, one row, so every screen has more room for the content */
 	@media (max-width: 767px) {
-		.footer-time {
+		.footer-sign {
 			display: none;
 		}
 
@@ -525,7 +525,6 @@
 
 	.entries-index .entry > .entry-text {
 		grid-column: 2;
-		margin-top: 0;
 		/* one line each; the detail lives in the cv */
 		white-space: nowrap;
 		overflow: hidden;
@@ -994,8 +993,9 @@
 		color: var(--color-primary);
 	}
 
+	/* one rhythm everywhere: title, a small step, the text, a bigger step, the tools */
 	.entry-text {
-		margin-top: 0.15rem;
+		margin-top: 0.35rem;
 		font-size: 0.875rem;
 		line-height: 1.5;
 		color: color-mix(in srgb, var(--color-text) 88%, transparent);
@@ -1101,49 +1101,22 @@
 		color: var(--color-text);
 	}
 
-	/* what each group of tools is used for, one row per group */
+	/*
+	 * Skills: one column per category, its label on top and one tool per line, so a tool is
+	 * found by glancing down one short list. Two columns on phones, four or seven wider up.
+	 */
 	.skills {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 1.25rem 1rem;
 		width: 100%;
 		margin-top: 0.25rem;
 	}
 
-	/*
-	 * Wider screens: one column per category, its label on top and one tool per line, so a
-	 * tool is found by glancing down one short list rather than reading across a wide row.
-	 */
-	/* spacing in steps: the SKILLS label, then each category label, then the tools under it */
-	.skills-heading .label {
-		margin-bottom: 1rem;
-	}
-
 	@media (min-width: 768px) {
 		.skills {
-			display: grid;
 			grid-template-columns: repeat(4, minmax(0, 1fr));
-			gap: 1.25rem 1.5rem;
-		}
-
-		.sub-skills .skill-row {
-			display: block;
-			padding: 0 0 0 0.9rem;
-			border-top: none;
-			border-left: 1px solid color-mix(in srgb, var(--color-hr) 15%, transparent);
-		}
-
-		.sub-skills h3 {
-			margin-bottom: 0.4rem;
-		}
-
-		/* more specific than the phone rule further down, so one tool per line wins here */
-		.skills .sub-skills small {
-			display: flex;
-			flex-direction: column;
-			gap: 0.1rem;
-		}
-
-		/* narrow columns: long names wrap rather than being cut off */
-		.skills .sub-skills small span {
-			white-space: normal;
+			column-gap: 1.5rem;
 		}
 	}
 
@@ -1158,40 +1131,19 @@
 		}
 	}
 
-	/* phones: skills as rows, the label above and the tools in a few columns */
+	/* spacing in steps: the SKILLS label, then each category label, then the tools under it */
+	.skills-heading .label {
+		margin-bottom: 1rem;
+	}
+
 	.skill-row {
-		display: grid;
-		grid-template-columns: 13rem minmax(0, 1fr);
-		column-gap: 1.5rem;
-		align-items: baseline;
-		padding-block: 0.55rem;
-		border-top: 1px solid color-mix(in srgb, var(--color-hr) 15%, transparent);
-	}
-
-	.sub-skills:first-child .skill-row {
-		border-top: none;
-	}
-
-	/* phones: tighter, so the whole skills block fits one screen */
-	@media (max-width: 767px) {
-		.skill-row {
-			grid-template-columns: minmax(0, 1fr);
-			row-gap: 0.15rem;
-			padding-block: 0.3rem;
-		}
-
-		.skills-heading .label {
-			margin-bottom: 0.4rem;
-		}
-
-		.sub-skills small {
-			line-height: 1.4;
-			row-gap: 0;
-		}
+		padding-left: 0.9rem;
+		border-left: 1px solid color-mix(in srgb, var(--color-hr) 15%, transparent);
 	}
 
 	/* the category as a label, like the dates on the timelines */
 	.sub-skills h3 {
+		margin-bottom: 0.4rem;
 		font-size: 0.8125rem;
 		font-weight: 400;
 		line-height: 1.5;
@@ -1200,11 +1152,10 @@
 		color: var(--color-label);
 	}
 
-	/* plain text in fixed columns: the rows line up like a table and scan in both directions */
 	.sub-skills small {
-		display: grid;
-		grid-template-columns: repeat(auto-fill, 8.5rem);
-		gap: 0.15rem 0.75rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.1rem;
 		margin-top: 0;
 		font-size: 0.875rem;
 		line-height: 1.5;
@@ -1212,21 +1163,6 @@
 
 	.sub-skills small span {
 		color: var(--color-text);
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-
-	/* phones: narrower columns, so a row still holds a few */
-	@media (max-width: 767px) {
-		.sub-skills small {
-			grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
-		}
-
-		/* narrow columns: long names wrap instead of being cut off */
-		.sub-skills small span {
-			white-space: normal;
-		}
 	}
 
 	.snap-panel {
@@ -1355,8 +1291,8 @@
 			position: fixed;
 			top: var(--header-h, 6rem);
 			right: 0;
-			/* the phone footer is two rows: the sign-off, then the links */
-			bottom: calc(4.75rem + env(safe-area-inset-bottom));
+			/* the phone footer is one row of links */
+			bottom: calc(3rem + env(safe-area-inset-bottom));
 			left: 0;
 			overflow-y: auto;
 			overscroll-behavior: contain;
@@ -1381,7 +1317,7 @@
 		}
 
 		/* page starts too, or the line under the peeking block goes missing */
-		.snap-step:not(.snap-panel > :first-child, .panel-heading + * > :first-child, .timeline > *, .sub-skills, .same-year) {
+		.snap-step:not(.snap-panel > :first-child, .panel-heading + * > :first-child, .timeline > *, .skills, .same-year) {
 			border-top: 1px solid color-mix(in srgb, var(--color-hr) 15%, transparent);
 		}
 
@@ -1406,12 +1342,7 @@
 		}
 
 		.skills {
-			display: block;
 			margin-top: 0;
-		}
-
-		.sub-skills.snap-step {
-			padding-block: 0;
 		}
 	}
 

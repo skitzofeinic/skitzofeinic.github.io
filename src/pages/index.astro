@@ -45,47 +45,47 @@ import Layout from '../layouts/layout.astro';
 		<section class="snap-step skills-heading">
 			<h3 class="label">skills</h3>
 		</section>
-		<div class="skills">
-			<section class="sub-skills snap-step">
+		<div class="skills snap-step">
+			<section class="sub-skills">
 				<div class="skill-row">
 					<h3>AI &amp; machine learning</h3>
 					<small><span>pytorch</span><span>onnx</span><span>ollama</span><span>llm integration</span></small>
 				</div>
 			</section>
-			<section class="sub-skills snap-step">
+			<section class="sub-skills">
 				<div class="skill-row">
 					<h3>automation</h3>
 					<small><span>python</span><span>tesseract</span><span>ci/cd</span></small>
 				</div>
 			</section>
-			<section class="sub-skills snap-step">
+			<section class="sub-skills">
 				<div class="skill-row">
 					<h3>data</h3>
-					<small><span>sql</span><span>nosql</span><span>mysql</span><span>postgres</span><span>streamlit</span></small>
+					<small><span>sql</span><span>postgres</span><span>streamlit</span></small>
 				</div>
 			</section>
-			<section class="sub-skills snap-step">
+			<section class="sub-skills">
 				<div class="skill-row">
 					<h3>backend</h3>
-					<small><span>node.js</span><span>express</span><span>java</span><span>kotlin</span><span>spring boot</span></small>
+					<small><span>java</span><span>kotlin</span><span>spring boot</span><span>node.js</span></small>
 				</div>
 			</section>
-			<section class="sub-skills snap-step">
+			<section class="sub-skills">
 				<div class="skill-row">
 					<h3>frontend</h3>
-					<small><span>typescript</span><span>javascript</span><span>react</span><span>vue</span></small>
+					<small><span>typescript</span><span>react</span><span>vue</span></small>
 				</div>
 			</section>
-			<section class="sub-skills snap-step">
+			<section class="sub-skills">
 				<div class="skill-row">
 					<h3>deployment</h3>
-					<small><span>docker</span><span>kubernetes</span><span>argocd</span><span>azure</span><span>git</span></small>
+					<small><span>docker</span><span>kubernetes</span><span>argocd</span><span>azure</span></small>
 				</div>
 			</section>
-			<section class="sub-skills snap-step">
+			<section class="sub-skills">
 				<div class="skill-row">
 					<h3>ways of working</h3>
-					<small><span>scrum</span><span>agile</span><span>dutch</span><span>english</span></small>
+					<small><span>scrum</span><span>dutch</span><span>english</span></small>
 				</div>
 			</section>
 		</div>
@@ -103,19 +103,13 @@ import Layout from '../layouts/layout.astro';
 			<article class="entry snap-step" style="--months: 5">
 				<p class="label">feb 2026 – jul 2026</p>
 				<h3 class="entry-title">DevOps engineer intern @ Ahold Delhaize <span class="entry-tag">internship</span></h3>
-				<p class="entry-text">
-					TechNL Labs team. AI web apps and prototypes with generative AI for internal teams: one computer vision
-					project and one labeling automation project.
-				</p>
+				<p class="entry-text">Two generative AI prototypes for internal teams. Computer vision. Labeling automation.</p>
 				<p class="entry-tools">python • kotlin • react • typescript • ci/cd • argocd • kubernetes • azure • llm integration</p>
 			</article>
 			<article class="entry snap-step" style="--months: 8">
 				<p class="label">jun 2025 – feb 2026</p>
 				<h3 class="entry-title">production staff @ Schiphol Catering Service</h3>
-				<p class="entry-text">
-					Flight catering at Schiphol Airport: preparing meals, loading aircraft and keeping to strict hygiene and
-					safety standards in a fast-paced, regulated environment.
-				</p>
+				<p class="entry-text">Loading &amp; unloading aircraft. Cleaning trolleys &amp; equipment from returning flights. Sorting for reuse on the clean side. Preparing food.</p>
 			</article>
 		</div>
 	</div>
@@ -128,10 +122,7 @@ import Layout from '../layouts/layout.astro';
 			<article class="entry snap-step" style="--months: 50">
 				<p class="label">2022 – present</p>
 				<h3 class="entry-title">IT @ Amsterdam University of Applied Sciences</h3>
-				<p class="entry-text">
-					Software engineering route, now in the responsible AI semester. Building scalable applications across the
-					full software development lifecycle.
-				</p>
+				<p class="entry-text">Software engineering route. Now in the responsible AI semester.</p>
 				<p class="entry-tools">java • javascript • python • ollama • streamlit • bootstrap • node.js • express • sql/nosql</p>
 			</article>
 			<article class="entry snap-step" style="--months: 60">
@@ -171,11 +162,7 @@ import Layout from '../layouts/layout.astro';
 						</div>
 					</dl>
 					<p class="label">accuracy on 380 unseen photos</p>
-					<p class="entry-text">
-						Dutch and English web app that puts your waste sorting up against image classifiers. DABI 1.1 and 1.2 are
-						CNNs I trained from scratch; MobileNetV3-Small is the pretrained benchmark. All three run in the browser
-						through ONNX.
-					</p>
+					<p class="entry-text">Your waste sorting vs image classifiers. Two CNNs trained from scratch, one pretrained, all in the browser.</p>
 					<p class="entry-tools">python • pytorch • onnx runtime web • javascript</p>
 				</div>
 			</article>
@@ -185,9 +172,7 @@ import Layout from '../layouts/layout.astro';
 					<h3 class="entry-title">invoice muncher</h3>
 					<p class="project-figure">pdf to data</p>
 					<p class="label">amounts • dates • vendors • VAT numbers</p>
-					<p class="entry-text">
-						Parser for invoices and financial statements: Tesseract OCR reads the PDF and Ollama pulls out the fields.
-					</p>
+					<p class="entry-text">Invoice &amp; statement parser. OCR reads the PDF, a local LLM extracts the fields.</p>
 					<p class="entry-tools">python • tesseract • ollama • tkinter</p>
 				</div>
 			</article>
@@ -202,42 +187,36 @@ import Layout from '../layouts/layout.astro';
 			<article class="entry snap-step">
 				<p class="label">2026</p>
 				<h3 class="entry-title">ICT-praktijkzoeker <span class="entry-tag entry-tag-status">in progress</span></h3>
-				<p class="entry-text">
-					Search tool for IT students: docs, Q&amp;A and code with licence, reliability label and a check question per result.
-				</p>
+				<p class="entry-text">Search tool for IT students. Labels each result for licence &amp; reliability.</p>
 				<p class="entry-tools">python • nlp • model training &amp; evaluation</p>
 			</article>
 			<article class="entry snap-step">
 				<p class="label">2025</p>
 				<h3 class="entry-title">Booomtag AI dashboard</h3>
-				<p class="entry-text">
-					Fully local AI dashboard: ask a question and a local LLM analyses their data to answer it.
-				</p>
+				<p class="entry-text">Fully local AI dashboard. Ask questions about your own data.</p>
 				<p class="entry-tools">python • streamlit • ollama • mysql</p>
 			</article>
 			<article class="entry snap-step">
 				<p class="label">2024</p>
 				<h3 class="entry-title">election results site</h3>
-				<p class="entry-text">Election results dashboard with JWT authentication and a real-time discussion forum.</p>
+				<p class="entry-text">Election results dashboard with login &amp; a live forum.</p>
 				<p class="entry-tools">java • spring boot • vue • jwt • docker • postgres</p>
 			</article>
 			<article class="entry snap-step same-year">
 				<h3 class="entry-title">student casino</h3>
-				<p class="entry-text">Virtual-coin casino game with a store for student items.</p>
+				<p class="entry-text">Virtual-coin casino with a store for student items.</p>
 				<p class="entry-tools">html • css • js • php • sql</p>
 			</article>
 			<article class="entry snap-step">
 				<p class="label">2023</p>
 				<h3 class="entry-title">AUAS open day dashboard</h3>
-				<p class="entry-text">
-					Interactive map, FAQs, trial lesson sign-ups and organiser management. Tested with Cypress, managed in GitLab.
-				</p>
+				<p class="entry-text">Open day site. Interactive map, FAQs &amp; trial lesson sign-ups.</p>
 				<p class="entry-tools">node.js • express • javascript • bootstrap • cypress</p>
 			</article>
 			<article class="entry snap-step">
 				<p class="label">2022</p>
 				<h3 class="entry-title">Corendon travel matching</h3>
-				<p class="entry-text">Forum-style platform for Corendon that matches older travellers so they can fly together.</p>
+				<p class="entry-text">Matches older travellers so they can fly together.</p>
 				<p class="entry-tools">html • css • javascript</p>
 			</article>
 		</div>
