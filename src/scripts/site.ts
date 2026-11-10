@@ -294,7 +294,8 @@ function revealPanelText(panel: HTMLElement, direction = 1, targetTop?: number) 
 
 	const section = panel.closest<HTMLElement>(".snap-panel") ?? panel;
 	const keep = new Set([section]);
-	if (!revealing) keep.add(currentIn(allPanels));
+	/* the section you leave stays; going up it becomes the peek below, even if cut off mid-reveal */
+	if (!revealing || direction < 0) keep.add(revealing ?? currentIn(allPanels));
 	hideAllBut(keep);
 	revealing = section;
 
@@ -554,12 +555,20 @@ function stepPanel(direction: number) {
 
 /*
  * Every mouse-wheel notch moves one panel immediately. A trackpad sends a long stream of
- * events per swipe, so it gets one step until the stream stops.
+ * events per swipe: a ramp up, then a fading momentum tail. One step per stream, but once
+ * the tail has faded to half its peak, a delta that jumps back up (or turns around) is a
+ * new swipe, so it steps without waiting for the tail to end.
  */
 const WHEEL_NOTCH = 120;
 const TRACKPAD_QUIET_MS = 120;
+/* deltas this small are finger jitter, e.g. on lift-off, never a swipe */
+const TRACKPAD_JITTER = 4;
 let trackpadActive = false;
 let trackpadRelease = 0;
+let lastTrackpadDelta = 0;
+let lastTrackpadStep = 0;
+let trackpadPeak = 0;
+let trackpadFaded = false;
 
 window.addEventListener(
 	"wheel",
@@ -576,9 +585,23 @@ window.addEventListener(
 
 		clearTimeout(trackpadRelease);
 		trackpadRelease = window.setTimeout(() => (trackpadActive = false), TRACKPAD_QUIET_MS);
-		if (!trackpadActive) {
+		const now = performance.now();
+		const size = Math.abs(e.deltaY);
+		const newSwipe =
+			now - lastTrackpadStep > SLIDE_MS &&
+			size > TRACKPAD_JITTER &&
+			(Math.sign(e.deltaY) !== Math.sign(lastTrackpadDelta) ||
+				(trackpadFaded && size > Math.abs(lastTrackpadDelta) * 1.5 + TRACKPAD_JITTER));
+		lastTrackpadDelta = e.deltaY;
+		if (!trackpadActive || newSwipe) {
 			trackpadActive = true;
+			lastTrackpadStep = now;
+			trackpadPeak = size;
+			trackpadFaded = false;
 			stepPanel(direction);
+		} else {
+			trackpadPeak = Math.max(trackpadPeak, size);
+			if (size < trackpadPeak / 2) trackpadFaded = true;
 		}
 	},
 	{ passive: false },

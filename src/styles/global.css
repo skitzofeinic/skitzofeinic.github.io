@@ -23,7 +23,7 @@
 	/* zaffre: the site's one and only colour scheme */
 	:root {
 		color-scheme: dark;
-		--color-background: rgb(0, 0, 255);
+		--color-background: rgb(0, 0, 170);
 		--color-text: rgb(211 211 211);
 		--color-primary: rgb(211 211 211);
 		--color-hover: rgb(255 255 255);
@@ -98,11 +98,13 @@
 	}
 
 	/* the Three.js layer: behind everything on the page */
+	/* the large viewport: inset 0 stops above iOS Safari's floating toolbar */
 	#backdrop {
 		position: fixed;
-		inset: 0;
+		top: 0;
+		left: 0;
 		width: 100%;
-		height: 100%;
+		height: 100lvh;
 		z-index: -1;
 		pointer-events: none;
 		image-rendering: pixelated;
@@ -112,12 +114,23 @@
 	body::after {
 		content: "";
 		position: fixed;
-		inset: 0;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100lvh;
 		z-index: 9999;
 		pointer-events: none;
 		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 		background-size: 240px 240px;
 		opacity: 0.22;
+	}
+
+	/* older browsers without lvh (the build strips a plain 100vh fallback line) */
+	@supports not (height: 100lvh) {
+		#backdrop,
+		body::after {
+			height: 100vh;
+		}
 	}
 
 	/* one solid white for every selection; dimmed text is dimmed by colour, not transparency, so it does not fade this */
@@ -154,7 +167,7 @@
 		font-size: 0.6875rem;
 		letter-spacing: 0.08em;
 		text-transform: uppercase;
-		color: color-mix(in srgb, var(--color-text) 60%, transparent);
+		color: color-mix(in srgb, var(--color-text) 75%, transparent);
 	}
 
 	/* the nav: a list in page order, slid by the script so the current item stays in the middle */
@@ -248,7 +261,7 @@
 		font-size: 0.75rem;
 		letter-spacing: 0.08em;
 		text-transform: uppercase;
-		color: color-mix(in srgb, var(--color-text) 60%, transparent);
+		color: color-mix(in srgb, var(--color-text) 75%, transparent);
 		white-space: nowrap;
 	}
 
@@ -430,7 +443,7 @@
 		padding-top: 0.2rem;
 		font-size: 0.75rem;
 		line-height: 1.5;
-		color: color-mix(in srgb, var(--color-text) 35%, transparent);
+		color: color-mix(in srgb, var(--color-text) 70%, transparent);
 		transition: opacity 0.15s steps(2);
 	}
 
@@ -534,7 +547,7 @@
 	/* "pretrained" sits small under the name rather than beside it */
 	.model-scores dt .label-type {
 		display: block;
-		color: color-mix(in srgb, var(--color-text) 70%, transparent);
+		color: color-mix(in srgb, var(--color-text) 80%, transparent);
 		font-size: 0.6875rem;
 	}
 
@@ -741,8 +754,8 @@
 
 	/* what kind of role or its status: a small outlined tag right after the title */
 	.entry-tag {
+		/* the space before it in the html is the gap; a margin would also indent it when it wraps */
 		display: inline-block;
-		margin-left: 0.6rem;
 		padding: 0.05rem 0.4rem;
 		font-size: 0.6875rem;
 		letter-spacing: 0.08em;
@@ -801,9 +814,45 @@
 			margin-bottom: 0;
 		}
 
-		/* no divider straight under a heading */
-		.panel-heading + .entries > .entry:first-child:not(.page-start) {
-			border-top: none;
+		/* the desktop timeline: as tall as it lasted, a diamond per entry and a line to the next */
+		.timeline .entry {
+			--top: 0.75rem;
+			position: relative;
+			min-height: calc(var(--months, 0) * var(--month, 0px));
+			padding-left: 1.25rem;
+		}
+
+		.timeline .entry:first-child {
+			--top: 0rem;
+		}
+
+		.timeline .entry.page-start {
+			--top: 1.25rem;
+		}
+
+		.timeline .entry::before {
+			content: "";
+			position: absolute;
+			left: 0;
+			top: calc(var(--top) + 0.5em);
+			width: 6px;
+			height: 6px;
+			border: 1px solid currentColor;
+			transform: rotate(45deg);
+		}
+
+		.timeline .entry::after {
+			content: "";
+			position: absolute;
+			left: 3px;
+			top: calc(var(--top) + 0.5em + 12px);
+			bottom: calc(-0.75rem - 0.5em + 4px);
+			width: 1px;
+			background: color-mix(in srgb, var(--color-hr) 30%, transparent);
+		}
+
+		.timeline .entry:last-child::after {
+			bottom: 0.75rem;
 		}
 	}
 
@@ -819,14 +868,14 @@
 		margin-top: 0.15rem;
 		font-size: 0.875rem;
 		line-height: 1.5;
-		color: color-mix(in srgb, var(--color-text) 75%, transparent);
+		color: color-mix(in srgb, var(--color-text) 88%, transparent);
 	}
 
 	.entry-tools {
 		margin-top: 0.25rem;
 		font-size: 0.8125rem;
 		line-height: 1.5;
-		color: color-mix(in srgb, var(--color-text) 55%, transparent);
+		color: color-mix(in srgb, var(--color-text) 75%, transparent);
 	}
 
 	/* label above each fact, in the same columns and gaps as the skill boxes */
@@ -909,7 +958,7 @@
 	.fact-detail {
 		display: block;
 		font-size: 0.875rem;
-		color: color-mix(in srgb, var(--color-text) 70%, transparent);
+		color: color-mix(in srgb, var(--color-text) 80%, transparent);
 	}
 
 
@@ -1204,12 +1253,25 @@
 			scroll-snap-stop: always;
 		}
 
-		.snap-step:not(.page-start):not(.sub-skills):not(.same-year) {
+		/* page starts too, or the line under the peeking block goes missing */
+		.snap-step:not(.snap-panel > :first-child, .panel-heading + * > :first-child, .timeline > *, .sub-skills, .same-year) {
 			border-top: 1px solid color-mix(in srgb, var(--color-hr) 15%, transparent);
 		}
 
 		h2 {
 			font-size: 1.5rem;
+		}
+
+		/* the first screen: the heading leads, large, so it is not just a list */
+		[data-index="01"] h2 {
+			/* scales down on short phones, where the whole intro must still fit one screen */
+			font-size: clamp(1.75rem, 5svh, 2.4rem);
+			line-height: 1.05;
+			margin-block: 0.75rem 1.5rem;
+		}
+
+		[data-index="01"] .facts dd {
+			font-size: 1.05rem;
 		}
 
 		.step-divider {

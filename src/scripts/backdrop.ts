@@ -185,12 +185,12 @@ function startBackdrop(canvas: HTMLCanvasElement) {
 
 	/*
 	 * The page background colour, read from the CSS so it stays the one source. Read through
-	 * an element's computed colour, which is always rgb(): the minified build writes #00f.
+	 * an element's computed colour, which is always rgb(): the minified build writes hex.
 	 */
 	const probe = document.createElement("i");
 	probe.style.color = "var(--color-background)";
 	document.body.append(probe);
-	const [r, g, b] = (getComputedStyle(probe).color.match(/\d+/g) ?? ["0", "0", "255"]).map(Number);
+	const [r, g, b] = (getComputedStyle(probe).color.match(/\d+/g) ?? ["0", "0", "170"]).map(Number);
 	probe.remove();
 	gl.useProgram(halftone);
 	gl.uniform3f(u.background, r / 255, g / 255, b / 255);
@@ -204,8 +204,9 @@ function startBackdrop(canvas: HTMLCanvasElement) {
 	let fieldHeight = 1;
 
 	const resize = () => {
-		width = Math.ceil(window.innerWidth);
-		height = Math.ceil(window.innerHeight);
+		/* the canvas's own box, which is taller than innerHeight on phones (see #backdrop) */
+		width = Math.ceil(canvas.clientWidth);
+		height = Math.ceil(canvas.clientHeight);
 		canvas.width = width;
 		canvas.height = height;
 		fieldWidth = Math.ceil(width / FIELD_SCALE);
