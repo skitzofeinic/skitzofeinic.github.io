@@ -1,5 +1,15 @@
 ---
 import "../styles/global.css";
+
+interface Props {
+    title: string;
+    description: string;
+}
+
+const { title, description } = Astro.props;
+const fullTitle = `${title} | nguyen anh le`;
+const year = new Date().getFullYear();
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
 ---
 
 <html lang="en">
@@ -7,163 +17,112 @@ import "../styles/global.css";
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-        <link id="favicon" rel="icon" href="/favicon-light.ico" />
+        <link rel="icon" href="/favicon-dark.ico" />
+        <meta name="theme-color" content="#0000ff" />
 
-        <title>portfolio | nguyen anh le</title>
+        <title>{fullTitle}</title>
+        <meta name="description" content={description} />
+        <link rel="canonical" href={canonicalUrl} />
+        <link rel="sitemap" href="/sitemap-index.xml" />
+
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content={fullTitle} />
+        <meta property="og:description" content={description} />
+        <meta property="og:url" content={canonicalUrl} />
+        <meta name="twitter:card" content="summary" />
 
         <script is:inline>
-            (function () {
-                const storedTheme = localStorage.getItem("theme");
-
-                const theme =
-                    storedTheme ||
-                    ("matchMedia" in window &&
-                    window.matchMedia("(prefers-color-scheme: dark)").matches
-                        ? "dark"
-                        : "light");
-
-                const root = document.documentElement;
-
-                root.setAttribute("data-theme", theme);
-                root.classList.toggle("dark", theme === "dark");
-
-                const favicon = document.getElementById("favicon");
-                if (favicon) {
-                    favicon.href =
-                        theme === "dark"
-                            ? "/favicon-dark.ico"
-                            : "/favicon-light.ico";
-                }
-            })();
+            /* hides the text until the first pixel reveal is ready */
+            if (window.matchMedia("(min-width: 768px) and (min-height: 501px)").matches) {
+                document.documentElement.classList.add("pixel-pending");
+            }
         </script>
     </head>
 
-    <body class="preload font-mono">
+    <body class="font-mono">
+        <canvas id="backdrop" aria-hidden="true"></canvas>
+
+        <script>
+            /* loaded separately so Three.js never delays the page itself */
+            import("../scripts/backdrop.ts");
+        </script>
+
         <div class="flex flex-col min-h-screen">
             <header
-                class="theme-sync fixed top-0 left-0 right-0 min-h-32 p-6 md:p-8 z-20 transition-colors duration-300 delay-200"
-                style="background-color: var(--color-background);"
+                class="fixed compact:static top-0 left-0 right-0 min-h-32 phone:min-h-0 p-6 phone:p-4 md:p-8 z-20"
             >
                 <div class="flex justify-between items-center gap-8 font-doto">
-                    <h1 class="text-4xl md:text-5xl font-light tracking-wide">
+                    <p class="text-4xl md:text-5xl font-light tracking-wide">
                         PORTFOLIO
-                    </h1>
+                    </p>
 
                     <div class="flex items-center gap-4">
-                        <h1
+                        <p
                             id="morse"
+                            aria-hidden="true"
                             class="hidden lg:block text-4xl md:text-5xl font-light tracking-wide font-doto"
                         >
                             - -.-- .--. . / -.-. .- - - ---
-                        </h1>
+                        </p>
 
-                        <button id="menu-toggle" class="md:hidden text-2xl">
-                            ☰
-                        </button>
+                        <!-- phones: one tappable streak per section instead of a menu -->
+                        <nav id="nav-streaks" aria-label="Sections" class="md:hidden flex items-center">
+                            <a href="#about" class="streak" aria-label="about me"></a>
+                            <a href="#professional" class="streak" aria-label="professional"></a>
+                            <a href="#education" class="streak" aria-label="education"></a>
+                            <a href="#personal" class="streak" aria-label="personal"></a>
+                            <a href="#school" class="streak" aria-label="school"></a>
+                            <a href="#contact" class="streak" aria-label="contact"></a>
+                        </nav>
                     </div>
                 </div>
 
-                <small class="text-xs md:text-sm">
-                    NGUYÉN ANH LÊ
-                </small>
+                <h1 class="text-xs md:text-sm font-mono">
+                    NGUYỄN ANH LÊ
+                </h1>
             </header>
 
-            <div class="flex flex-1 pt-32 pb-20">
+            <div class="flex flex-1 pt-32 pb-20 compact:pt-0 compact:pb-6 phone:pb-14">
                 <nav
                     id="nav-main"
-                    class="theme-sync hidden md:flex md:flex-col w-48 p-6 md:p-8 fixed left-0 top-32 bottom-20 transition-colors duration-300 delay-500"
-                    style="background-color: var(--color-background);"
+                    aria-label="Main"
+                    class="hidden md:flex md:flex-col w-48 p-6 md:p-8 fixed compact:absolute left-0 top-32 bottom-20 compact:bottom-auto"
                 >
                     <div class="flex flex-col gap-4">
-                        <h1 class="text-2xl">navigation</h1>
-
                         <ul class="flex flex-col gap-3 text-sm">
-                            <li><a href="/" class="nav-link">about me</a></li>
-
-                            <li
-                                class="nav-group flex flex-col gap-1"
-                                data-group="experience"
-                            >
-                                <a
-                                    href="/experiences/professional"
-                                    class="nav-link">experience</a
-                                >
-                                <ul class="nav-sublinks">
-                                    <li>
-                                        <a
-                                            href="/experiences/professional"
-                                            class="nav-sublink">professional</a
-                                        >
-                                    </li>
-                                    <li>
-                                        <a
-                                            href="/experiences/education"
-                                            class="nav-sublink">educational</a
-                                        >
-                                    </li>
-                                </ul>
-                            </li>
-
-                            <li
-                                class="nav-group flex flex-col gap-1"
-                                data-group="projects"
-                            >
-                                <a href="/projects/personal" class="nav-link"
-                                    >projects</a
-                                >
-                                <ul class="nav-sublinks">
-                                    <li>
-                                        <a
-                                            href="/projects/personal"
-                                            class="nav-sublink">personal</a
-                                        >
-                                    </li>
-                                    <li>
-                                        <a
-                                            href="/projects/school"
-                                            class="nav-sublink">school</a
-                                        >
-                                    </li>
-                                </ul>
-                            </li>
-
-                            <li>
-                                <a href="/contacts" class="nav-link">contact</a>
-                            </li>
+                            <li><a href="#about" class="nav-link">about</a></li>
+                            <li><a href="#professional" class="nav-link">experience</a></li>
+                            <li><a href="#education" class="nav-link">education</a></li>
+                            <li><a href="#personal" class="nav-link">projects</a></li>
+                            <li><a href="#school" class="nav-link">coursework</a></li>
+                            <li><a href="#contact" class="nav-link">contact</a></li>
                         </ul>
                     </div>
                 </nav>
 
-                <div
-                    class="theme-sync min-w-0 flex-1 md:ml-48 overflow-y-auto px-6 md:p-8 transition-colors duration-300 delay-800"
+                <main
+                    class="min-w-0 flex-1 md:ml-48 px-6 max-md:pl-9 max-md:pr-4 md:px-8"
                 >
                     <slot />
-                </div>
+                </main>
+
             </div>
 
             <footer
-                class="theme-sync fixed bottom-0 left-0 right-0 h-20 p-6 md:p-8 flex flex-row justify-between items-center gap-4 text-sm z-20 transition-colors duration-300 delay-600"
-                style="background-color: var(--color-background);"
+                class="fixed compact:static bottom-0 left-0 right-0 h-20 phone:h-14 p-6 phone:p-4 md:p-8 flex flex-row justify-between items-center gap-4 text-sm z-20"
             >
-                <button id="theme-toggle" class="theme-button">
-                    light mode
-                </button>
+                <!-- a quiet sign-off and the local time, so recruiters know the time zone -->
+                <p class="footer-sign">
+                    <span class="footer-copy">© {year} nguyen anh le</span>
+                    <span class="footer-time">amsterdam <time id="local-time">--:--</time></span>
+                </p>
 
-                <ul class="flex flex-wrap gap-6" style="text-decoration: underline">
-                    <li>
-                        <a
-                            href="https://www.linkedin.com/in/anh-le-95b840348/"
-                            target="_blank">linkedin</a
-                        >
-                    </li>
-                    <li>
-                        <a
-                            href="https://github.com/skitzofeinic"
-                            target="_blank">github</a
-                        >
-                    </li>
-                    <li><a href="mailto:anhle261137@gmail.com">gmail</a></li>
-                    <li><a href="/cv">cv</a></li>
+                <!-- same order as the links by the name, in the footer's label style -->
+                <ul class="footer-links">
+                    <li><a href="/Nguyen_Anh_Le_Resume.pdf" target="_blank">cv ↗</a></li>
+                    <li><a href="https://github.com/skitzofeinic" target="_blank">github ↗</a></li>
+                    <li><a href="https://www.linkedin.com/in/anh-le-95b840348/" target="_blank">linkedin ↗</a></li>
+                    <li><a href="mailto:anhle261137@gmail.com">gmail ↗</a></li>
                 </ul>
             </footer>
         </div>
@@ -176,149 +135,729 @@ import "../styles/global.css";
             const syncHeaderHeight = () => {
                 if (!header) return;
                 const h = header.offsetHeight;
+                document.documentElement.style.setProperty(
+                    "--header-h",
+                    `${h}px`,
+                );
                 if (sidebar) sidebar.style.top = `${h}px`;
-                if (mainContent)
-                    (mainContent as HTMLElement).style.paddingTop = `${h}px`;
+                if (mainContent) {
+                    const isFixed =
+                        getComputedStyle(header).position === "fixed";
+                    (mainContent as HTMLElement).style.paddingTop = isFixed
+                        ? `${h}px`
+                        : "";
+                }
             };
 
             new ResizeObserver(syncHeaderHeight).observe(header!);
             syncHeaderHeight();
 
-            function updateThemeUI(theme: string) {
-                const button = document.getElementById("theme-toggle");
-                if (!button) return;
+            const panels = Array.from(
+                document.querySelectorAll<HTMLElement>(".snap-panel"),
+            );
 
-                button.textContent =
-                    theme === "dark" ? "zaffre mode" : "silver mode";
+            const steps = Array.from(
+                document.querySelectorAll<HTMLElement>(".snap-step"),
+            );
+
+            /* the content scrolls inside main, except on short screens */
+            const scroller = document.querySelector("main")!;
+
+            function atScrollEnd() {
+                if (getComputedStyle(scroller).position === "fixed") {
+                    return (
+                        scroller.scrollTop + scroller.clientHeight >=
+                        scroller.scrollHeight - 2
+                    );
+                }
+                return (
+                    window.innerHeight + window.scrollY >=
+                    document.documentElement.scrollHeight - 2
+                );
             }
 
-            function updateFavicon(theme: string) {
-                const favicon = document.getElementById(
-                    "favicon",
-                ) as HTMLLinkElement | null;
-                if (!favicon) return;
+            function currentIn(targets: HTMLElement[]) {
+                if (atScrollEnd()) return targets[targets.length - 1];
 
-                favicon.href =
-                    theme === "dark"
-                        ? "/favicon-dark.ico"
-                        : "/favicon-light.ico";
+                /* phone screens can hold several sections, so look further down */
+                const line =
+                    window.innerHeight * (window.innerWidth < 768 ? 0.6 : 1 / 3);
+                let current = targets[0];
+                for (const target of targets) {
+                    if (target.getBoundingClientRect().top <= line) {
+                        current = target;
+                    }
+                }
+                return current;
             }
 
-            function applyTheme(theme: string) {
-                const root = document.documentElement;
-
-                root.setAttribute("data-theme", theme);
-                root.classList.toggle("dark", theme === "dark");
-                localStorage.setItem("theme", theme);
-
-                updateThemeUI(theme);
-                updateFavicon(theme);
+            function currentPanel() {
+                return currentIn(panels);
             }
 
-            function initTheme() {
-                const stored = localStorage.getItem("theme");
 
-                const theme =
-                    stored ||
-                    (window.matchMedia?.("(prefers-color-scheme: dark)").matches
-                        ? "dark"
-                        : "light");
+            /* the phone screens the rail was last built from (set by buildStreaks) */
+            let streakPages: HTMLElement[] = [];
+            const streakRail = document.getElementById("nav-streaks");
 
-                applyTheme(theme);
+            /*
+             * Phones: one tick per screen, grouped per section, so a section that takes
+             * two screens shows two ticks. Elsewhere one tick per section.
+             */
+            function buildStreaks(phonePages: HTMLElement[]) {
+                if (!streakRail) return;
+                streakRail.replaceChildren();
+                streakPages = phonePages;
+
+                for (const panel of panels) {
+                    const group = document.createElement("div");
+                    group.className = "streak-group";
+                    const ownPages = phonePages.filter(
+                        (page) => page.closest(".snap-panel") === panel,
+                    );
+                    const targets = ownPages.length ? ownPages : [panel];
+                    const name =
+                        document.querySelector(`.nav-link[href="#${panel.id}"]`)
+                            ?.textContent ?? panel.id;
+
+                    targets.forEach((target, i) => {
+                        const link = document.createElement("a");
+                        link.href = `#${panel.id}`;
+                        link.className = "streak";
+                        link.dataset.page = String(phonePages.indexOf(target));
+                        link.setAttribute(
+                            "aria-label",
+                            targets.length > 1
+                                ? `${name}, part ${i + 1} of ${targets.length}`
+                                : name,
+                        );
+                        group.append(link);
+                    });
+                    streakRail.append(group);
+                }
+                setActiveNav();
             }
-
-            document
-                .getElementById("theme-toggle")
-                ?.addEventListener("click", () => {
-                    const current =
-                        document.documentElement.getAttribute("data-theme") ||
-                        "light";
-                    const next = current === "dark" ? "light" : "dark";
-                    applyTheme(next);
-                });
-
-            initTheme();
 
             function setActiveNav() {
-                const path = window.location.pathname.replace(/\/$/, "") || "/";
+                const panel = currentPanel();
+                const hash = `#${panel.id}`;
 
-                /* reset all */
-                document
-                    .querySelectorAll(".nav-link, .nav-sublink, .nav-group")
-                    .forEach((el) => el.classList.remove("active"));
+                /* lets a section animate things, like the score bars, once it is on screen */
+                panels.forEach((other) =>
+                    other.classList.toggle("is-current", other === panel),
+                );
 
-                /* 1. handle standalone links (no subnav) */
                 document.querySelectorAll(".nav-link").forEach((link) => {
-                    const href = link.getAttribute("href");
-                    if (!href) return;
-
-                    const isStandalone = !link.closest(".nav-group");
-
-                    if (isStandalone && path === href) {
-                        link.classList.add("active");
-                    }
+                    link.classList.toggle(
+                        "active",
+                        link.getAttribute("href") === hash,
+                    );
                 });
 
-                /* 2. handle subnav logic */
-                document.querySelectorAll(".nav-sublink").forEach((link) => {
-                    const href = link.getAttribute("href");
-                    if (!href) return;
-
-                    const isActive = path === href;
-
-                    link.classList.toggle("active", isActive);
-
-                    if (isActive) {
-                        const group = link.closest(".nav-group");
-                        group?.classList.add("active");
-                    }
+                /* the current screen is bright, the rest of its section half-bright */
+                const page = streakPages.length ? currentIn(streakPages) : null;
+                document.querySelectorAll<HTMLElement>(".streak").forEach((streak) => {
+                    const inSection = streak.getAttribute("href") === hash;
+                    streak.classList.toggle("in-section", inSection);
+                    streak.classList.toggle(
+                        "active",
+                        page
+                            ? streakPages[Number(streak.dataset.page)] === page
+                            : inSection,
+                    );
                 });
             }
 
-            document.addEventListener("DOMContentLoaded", setActiveNav);
-            window.addEventListener("popstate", setActiveNav);
-
-            const menuToggle = document.getElementById("menu-toggle");
-            const nav = document.getElementById("nav-main");
-
-            function toggleMobileNav() {
-                if (!nav) return;
-
-                nav.classList.toggle("mobile-open");
-                document.body.classList.toggle("no-scroll");
-            }
-
-            menuToggle?.addEventListener("click", toggleMobileNav);
-
-            function closeNav() {
-                nav?.classList.remove("mobile-open");
-                document.body.classList.remove("no-scroll");
-            }
-
-            /* close when clicking background ONLY */
-            nav?.addEventListener("click", (e) => {
-                if (e.target === nav) {
-                    closeNav();
+            /* the footer links step aside while the same links next to the name are on screen */
+            /*
+             * Score bars: split the filled part into small blocks, each switching on at a time set
+             * by its position plus a little randomness, for a ragged left-to-right reveal.
+             */
+            const BAR_BLOCK_PERCENT = 2;
+            document.querySelectorAll<HTMLElement>(".model-bar").forEach((bar) => {
+                const score = parseFloat(bar.style.getPropertyValue("--score"));
+                for (let left = 0; left < score; left += BAR_BLOCK_PERCENT) {
+                    const block = document.createElement("span");
+                    block.className = "bar-block";
+                    block.style.setProperty("--left", `${left}%`);
+                    block.style.setProperty("--width", `${Math.min(BAR_BLOCK_PERCENT, score - left)}%`);
+                    const delay = 300 + (left / 100) * 700 + Math.random() * 160;
+                    block.style.setProperty("--delay", `${Math.round(delay)}ms`);
+                    bar.append(block);
                 }
             });
 
-            /* close when clicking ANY navigation link */
-            document.querySelectorAll("#nav-main a").forEach((link) => {
-                link.addEventListener("click", () => {
-                    closeNav();
+            /* the footer clock: Amsterdam time, whatever the visitor's own zone */
+            const localTime = document.getElementById("local-time");
+            const clock = new Intl.DateTimeFormat("en-GB", {
+                timeZone: "Europe/Amsterdam",
+                hour: "2-digit",
+                minute: "2-digit",
+            });
+            const tick = () => {
+                if (localTime) localTime.textContent = clock.format(new Date());
+            };
+            tick();
+            setInterval(tick, 15000);
+
+            /* copy buttons: copy their text, then say so for a moment */
+            document.querySelectorAll<HTMLButtonElement>("[data-copy]").forEach((button) => {
+                button.addEventListener("click", async () => {
+                    try {
+                        await navigator.clipboard.writeText(button.dataset.copy ?? "");
+                        button.textContent = "copied";
+                    } catch {
+                        button.textContent = "press ctrl+c";
+                    }
+                    setTimeout(() => (button.textContent = "copy"), 1600);
                 });
             });
 
-            /* escape key */
-            document.addEventListener("keydown", (e) => {
-                if (e.key === "Escape") closeNav();
+            /* by the name on the about panel, and in the contact closer */
+            const visibleQuickLinks = new Set<Element>();
+            const quickLinkWatcher = new IntersectionObserver((entries) => {
+                for (const entry of entries) {
+                    if (entry.isIntersecting) visibleQuickLinks.add(entry.target);
+                    else visibleQuickLinks.delete(entry.target);
+                }
+                document.documentElement.classList.toggle(
+                    "quick-links-visible",
+                    visibleQuickLinks.size > 0,
+                );
+                /* watched against the scrolling area: behind the fixed header does not count */
+            }, { root: scroller });
+            document
+                .querySelectorAll(".quick-links, [data-hides-footer]")
+                .forEach((links) => quickLinkWatcher.observe(links));
+
+            let navFrame = 0;
+            window.addEventListener(
+                "scroll",
+                () => {
+                    cancelAnimationFrame(navFrame);
+                    navFrame = requestAnimationFrame(setActiveNav);
+                },
+                /* capture, because scrolling inside main does not bubble */
+                { passive: true, capture: true },
+            );
+            setActiveNav();
+            window.addEventListener("resize", () => {
+                    setActiveNav();
             });
 
-            nav?.addEventListener("click", (e) => {
-                if (e.target === nav) {
-                    nav.classList.remove("mobile-open");
-                    document.body.classList.remove("no-scroll");
+            const snapMode = window.matchMedia(
+                "(min-width: 768px) and (min-height: 501px)",
+            );
+            const phoneMode = window.matchMedia(
+                "(max-width: 767px) and (min-height: 501px)",
+            );
+
+            const PIXEL_SIZE = 32;
+            const PIXEL_HOLD_MS = 450;
+            const PIXEL_REVEAL_MS = 800;
+            let pixelFrame = 0;
+
+            type PixelCell = {
+                x: number;
+                y: number;
+                until: number;
+            };
+
+            /*
+             * One grid cell per block of text in the panel, in the positions the panel will have
+             * once it has slid into place. `shift` is how far the content still has to move up.
+             */
+            function collectPixelCells(
+                panel: HTMLElement,
+                area: DOMRect,
+                direction: number,
+                shift: number,
+            ) {
+                const cells = new Map<string, PixelCell>();
+                const walker = document.createTreeWalker(
+                    panel,
+                    NodeFilter.SHOW_TEXT,
+                );
+                const range = document.createRange();
+                const finalTop = area.top + shift;
+
+                const cover = (rect: DOMRect) => {
+                    const right = rect.right - area.left;
+                    const bottom = rect.bottom - finalTop;
+                    const startX =
+                        Math.floor((rect.left - area.left) / PIXEL_SIZE) *
+                        PIXEL_SIZE;
+                    const startY =
+                        Math.floor((rect.top - finalTop) / PIXEL_SIZE) *
+                        PIXEL_SIZE;
+
+                    for (let y = startY; y < bottom; y += PIXEL_SIZE) {
+                        for (let x = startX; x < right; x += PIXEL_SIZE) {
+                            const key = `${x},${y}`;
+                            if (cells.has(key)) continue;
+                            cells.set(key, { x, y, until: 0 });
+                        }
+                    }
+                };
+
+                while (walker.nextNode()) {
+                    const node = walker.currentNode as Text;
+                    if (!node.data.trim()) continue;
+
+                    range.selectNodeContents(node);
+                    Array.from(range.getClientRects()).forEach(cover);
                 }
+
+                /* lines and boxes too, so the panel is completely empty during the hold */
+                panel
+                    .querySelectorAll("hr, .skill-box, .entry, .project-card, .contact-tile")
+                    .forEach((element) => cover(element.getBoundingClientRect()));
+
+                /*
+                 * Whatever already peeked in before the slide stays visible; only what was
+                 * off screen is revealed. Judged by each block's centre at its old position.
+                 */
+                const fresh = Array.from(cells.values()).filter((cell) => {
+                    const centre = cell.y + shift + PIXEL_SIZE / 2;
+                    return shift === 0 || centre < 0 || centre >= area.height;
+                });
+                const continuing = fresh.length < cells.size;
+
+                /* spread over the new content's own height, so the sweep starts right where the peek ended */
+                const ys = fresh.map((cell) => cell.y);
+                const top = Math.min(...ys);
+                const span = Math.max(Math.max(...ys) - top, 1);
+                /*
+                 * Carrying on from a peek, or stepping back up, only waits for the slide to land;
+                 * the full pause is for the first load and for jumps from the nav.
+                 */
+                const hold = continuing || direction < 0 ? SLIDE_MS : PIXEL_HOLD_MS;
+
+                for (const cell of fresh) {
+                    /* follows the scroll: top down when going down, bottom up when going up */
+                    const along = (cell.y - top) / span;
+                    const order = direction < 0 ? 1 - along : along;
+                    cell.until =
+                        hold + (order * 0.7 + Math.random() * 0.3) * PIXEL_REVEAL_MS;
+                }
+
+                return fresh;
+            }
+
+            /*
+             * Clips blocks out of the content itself, so the backdrop stays untouched. While the
+             * panel is still sliding into place the blocks ride along with it.
+             */
+            function revealPanelText(panel: HTMLElement, direction = 1, targetTop?: number) {
+                cancelAnimationFrame(pixelFrame);
+                scroller.style.clipPath = "";
+
+                if (!snapMode.matches) return;
+
+                const area = scroller.getBoundingClientRect();
+                const finalTop = targetTop ?? scroller.scrollTop;
+                const cells = collectPixelCells(
+                    panel,
+                    area,
+                    direction,
+                    finalTop - scroller.scrollTop,
+                );
+                const start = performance.now();
+                const visibleArea = `M0 0H${Math.ceil(area.width)}V${Math.ceil(area.height)}H0Z`;
+
+                const draw = (now: number) => {
+                    const elapsed = now - start;
+                    /* how far the content still has to slide */
+                    const offset = Math.round(finalTop - scroller.scrollTop);
+                    let hidden = "";
+
+                    for (const cell of cells) {
+                        if (elapsed < cell.until) {
+                            hidden += `M${cell.x} ${cell.y + offset}h${PIXEL_SIZE}v${PIXEL_SIZE}h-${PIXEL_SIZE}z`;
+                        }
+                    }
+
+                    if (hidden) {
+                        /* even-odd turns each block into a hole in the visible area */
+                        scroller.style.clipPath = `path(evenodd, "${visibleArea}${hidden}")`;
+                        pixelFrame = requestAnimationFrame(draw);
+                    } else {
+                        scroller.style.clipPath = "";
+                    }
+                };
+
+                /* applied synchronously so the real text never flashes first */
+                draw(start);
+            }
+
+            /* a quick slide, so the section that peeked in visibly moves into place */
+            const SLIDE_MS = 260;
+            let slideFrame = 0;
+            /* where an unfinished slide is heading, so fast scrolling keeps counting from there */
+            let slideTarget: HTMLElement | null = null;
+
+            function slideTo(top: number) {
+                cancelAnimationFrame(slideFrame);
+                const from = scroller.scrollTop;
+                const start = performance.now();
+                /* snapping would pull every intermediate step back to a panel edge */
+                scroller.style.scrollSnapType = "none";
+
+                const frame = (now: number) => {
+                    const t = Math.min((now - start) / SLIDE_MS, 1);
+                    const eased = 1 - Math.pow(1 - t, 3);
+                    scroller.scrollTop = from + (top - from) * eased;
+
+                    if (t < 1) {
+                        slideFrame = requestAnimationFrame(frame);
+                    } else {
+                        scroller.style.scrollSnapType = "";
+                        slideTarget = null;
+                    }
+                };
+                slideFrame = requestAnimationFrame(frame);
+            }
+
+            function goToPanel(panel: HTMLElement) {
+                /* also works for phone pages, which sit in document order too */
+                const from = slideTarget ?? currentIn(phoneMode.matches ? pages : panels);
+                const direction =
+                    from.compareDocumentPosition(panel) &
+                    Node.DOCUMENT_POSITION_PRECEDING
+                        ? -1
+                        : 1;
+                const top = Math.round(
+                    scroller.scrollTop +
+                        panel.getBoundingClientRect().top -
+                        scroller.getBoundingClientRect().top,
+                );
+
+                slideTarget = panel;
+                /*
+                 * The slide is scheduled first so that in every frame the content moves before
+                 * the reveal places its blocks; the other way round the blocks trail a frame
+                 * behind and slivers of text flicker through, which shows when scrolling up.
+                 */
+                slideTo(top);
+                revealPanelText(panel, direction, top);
+            }
+
+            const footer = document.querySelector("footer");
+
+            /* first block of each one-screen page in phone mode */
+            let pages: HTMLElement[] = [];
+            let pagesLaidOutFor = "";
+
+            function stableViewportHeight() {
+                const probe = document.createElement("div");
+                probe.style.cssText =
+                    "position:absolute;visibility:hidden;height:100svh";
+                document.body.append(probe);
+                const height = probe.offsetHeight;
+                probe.remove();
+                return height;
+            }
+
+            /* greedily fits as many blocks as possible on each screen */
+            function layoutPhonePages() {
+                steps.forEach((step) => {
+                    step.classList.remove("page-start");
+                    step.style.minHeight = "";
+                });
+                pages = [];
+
+                const boxes = Array.from(
+                    document.querySelectorAll<HTMLElement>(".skill-box"),
+                );
+                boxes.forEach((box) => (box.style.minHeight = ""));
+
+                if (!phoneMode.matches) {
+                    buildStreaks([]);
+                    return;
+                }
+
+                /* stacked boxes have no shared grid row, so match the tallest here */
+                const tallestBox = Math.max(
+                    ...boxes.map((box) => box.getBoundingClientRect().height),
+                );
+                boxes.forEach((box) => (box.style.minHeight = `${tallestBox}px`));
+
+                const available =
+                    stableViewportHeight() -
+                    (header?.offsetHeight ?? 0) -
+                    (footer?.offsetHeight ?? 0);
+                const height = (step: HTMLElement) =>
+                    step.getBoundingClientRect().height;
+
+                /* each screen stops short by this much, so the next one peeks in */
+                const root = getComputedStyle(document.documentElement);
+                const peek =
+                    parseFloat(root.getPropertyValue("--peek")) * parseFloat(root.fontSize);
+                const room = available - peek;
+
+                let used = Infinity;
+                let last: HTMLElement | null = null;
+
+                const fillLastBlock = (to: number) => {
+                    if (last && used < to) {
+                        last.style.minHeight = `${height(last) + to - used}px`;
+                    }
+                };
+
+                for (const step of steps) {
+                    /* a new section always starts on its own screen, and so do the skills */
+                    const startsSection =
+                        last?.closest(".snap-panel") !==
+                            step.closest(".snap-panel") ||
+                        step.classList.contains("skills-heading");
+
+                    if (startsSection || used + height(step) > room) {
+                        fillLastBlock(room);
+                        step.classList.add("page-start");
+                        pages.push(step);
+                        used = height(step);
+                    } else {
+                        used += height(step);
+                    }
+                    last = step;
+                }
+
+                /* nothing comes after the last screen, so it fills all the way down */
+                fillLastBlock(available);
+                buildStreaks(pages);
+            }
+
+            function relayoutPhonePages() {
+                /* mobile browser bars resize the window while scrolling; ignore those */
+                const key = `${window.innerWidth}x${stableViewportHeight()}`;
+                if (key === pagesLaidOutFor) return;
+                pagesLaidOutFor = key;
+                layoutPhonePages();
+            }
+
+            layoutPhonePages();
+            pagesLaidOutFor = `${window.innerWidth}x${stableViewportHeight()}`;
+            window.addEventListener("resize", relayoutPhonePages);
+
+            function pageBottom(page: HTMLElement) {
+                const next = pages[pages.indexOf(page) + 1];
+                return next
+                    ? next.getBoundingClientRect().top
+                    : steps[steps.length - 1].getBoundingClientRect().bottom;
+            }
+
+            function pageContaining(panel: HTMLElement) {
+                const index = steps.indexOf(
+                    panel.querySelector<HTMLElement>(".snap-step")!,
+                );
+                return pages.reduce((found, page) =>
+                    steps.indexOf(page) <= index ? page : found,
+                );
+            }
+
+            function stepPanel(direction: number) {
+                const targets = phoneMode.matches ? pages : panels;
+
+                /* mid-slide: count from where the slide is going, not from where it is */
+                if (slideTarget && targets.includes(slideTarget)) {
+                    const next = targets[targets.indexOf(slideTarget) + direction];
+                    if (next) goToPanel(next);
+                    return;
+                }
+
+                const panel = currentIn(targets);
+                const rect = panel.getBoundingClientRect();
+                const bottom = phoneMode.matches
+                    ? pageBottom(panel)
+                    : rect.bottom;
+                const viewTop = header?.offsetHeight ?? 0;
+                const viewBottom =
+                    window.innerHeight - (footer?.offsetHeight ?? 0);
+                const hidden =
+                    direction > 0 ? bottom - viewBottom : viewTop - rect.top;
+
+                /* only reachable on very short windows where a panel overflows */
+                if (hidden > 2) {
+                    scroller.scrollBy({
+                        top:
+                            direction *
+                            Math.min(hidden, (viewBottom - viewTop) * 0.9),
+                        behavior: "instant",
+                    });
+                    return;
+                }
+
+                const next = targets[targets.indexOf(panel) + direction];
+                if (next) goToPanel(next);
+            }
+
+            /*
+             * Every mouse-wheel notch moves one panel immediately. A trackpad
+             * sends a long stream of events per swipe, so it gets one step
+             * until the stream stops.
+             */
+            const WHEEL_NOTCH = 120;
+            const TRACKPAD_QUIET_MS = 120;
+            let trackpadActive = false;
+            let trackpadRelease = 0;
+
+            window.addEventListener(
+                "wheel",
+                (e) => {
+                    if (
+                        (!snapMode.matches && !phoneMode.matches) ||
+                        e.ctrlKey ||
+                        e.deltaY === 0
+                    ) {
+                        return;
+                    }
+
+                    e.preventDefault();
+
+                    const direction = Math.sign(e.deltaY);
+                    const legacyDelta = (e as unknown as { wheelDeltaY: number })
+                        .wheelDeltaY;
+
+                    if (legacyDelta !== 0 && legacyDelta % WHEEL_NOTCH === 0) {
+                        stepPanel(direction);
+                        return;
+                    }
+
+                    clearTimeout(trackpadRelease);
+                    trackpadRelease = window.setTimeout(
+                        () => (trackpadActive = false),
+                        TRACKPAD_QUIET_MS,
+                    );
+
+                    if (!trackpadActive) {
+                        trackpadActive = true;
+                        stepPanel(direction);
+                    }
+                },
+                { passive: false },
+            );
+
+            /* safety net: settle on the nearest step if a swipe stops between two */
+            const SETTLE_DELAY_MS = 150;
+            let touching = false;
+            let settleTimer = 0;
+
+            function settleOnStep() {
+                if (touching || !phoneMode.matches) return;
+
+                const viewTop = header?.offsetHeight ?? 0;
+                const viewBottom =
+                    window.innerHeight - (footer?.offsetHeight ?? 0);
+                const distance = (step: HTMLElement) =>
+                    Math.abs(step.getBoundingClientRect().top - viewTop);
+                const nearest = pages.reduce((a, b) =>
+                    distance(b) < distance(a) ? b : a,
+                );
+
+                /* a page taller than the screen must stay freely scrollable */
+                const overflows =
+                    pageBottom(nearest) -
+                        nearest.getBoundingClientRect().top >
+                    viewBottom - viewTop + 2;
+
+                if (distance(nearest) > 3 && !overflows) {
+                    nearest.scrollIntoView({
+                        block: "start",
+                        behavior: "smooth",
+                    });
+                }
+            }
+
+            function scheduleSettle() {
+                clearTimeout(settleTimer);
+                settleTimer = window.setTimeout(settleOnStep, SETTLE_DELAY_MS);
+            }
+
+            const endTouch = () => {
+                touching = false;
+                scheduleSettle();
+            };
+
+            window.addEventListener(
+                "touchstart",
+                () => (touching = true),
+                { passive: true },
+            );
+            window.addEventListener("touchend", endTouch, { passive: true });
+            window.addEventListener("touchcancel", endTouch, { passive: true });
+            window.addEventListener("scroll", scheduleSettle, {
+                passive: true,
+                capture: true,
+            });
+
+            /* main is not focused by default, so step through panels from the page */
+            const STEP_KEYS: Record<string, number> = {
+                ArrowDown: 1,
+                PageDown: 1,
+                " ": 1,
+                ArrowUp: -1,
+                PageUp: -1,
+            };
+
+            window.addEventListener("keydown", (e) => {
+                const direction = STEP_KEYS[e.key];
+                if (
+                    !direction ||
+                    (!snapMode.matches && !phoneMode.matches) ||
+                    e.ctrlKey ||
+                    e.altKey ||
+                    e.metaKey
+                ) {
+                    return;
+                }
+                if (e.key === " " && (e.target as Element).closest("a, button")) {
+                    return;
+                }
+
+                e.preventDefault();
+                stepPanel(e.key === " " && e.shiftKey ? -1 : direction);
+            });
+
+            Promise.race([
+                document.fonts.ready,
+                new Promise((resolve) => setTimeout(resolve, 800)),
+            ]).then(() => {
+                layoutPhonePages();
+                    setActiveNav();
+                if (snapMode.matches) revealPanelText(currentPanel());
+                document.documentElement.classList.remove("pixel-pending");
+            });
+
+            document
+                .querySelectorAll<HTMLAnchorElement>('#nav-main a[href^="#"]')
+                .forEach((link) => {
+                    link.addEventListener("click", (e) => {
+                        if (!snapMode.matches && !phoneMode.matches) return;
+
+                        const hash = link.getAttribute("href")!;
+                        const panel = document.querySelector<HTMLElement>(hash);
+                        if (!panel) return;
+
+                        e.preventDefault();
+                        history.replaceState(null, "", hash);
+                        goToPanel(
+                            phoneMode.matches ? pageContaining(panel) : panel,
+                        );
+                    });
+                });
+
+            /* the rail's ticks are rebuilt with the layout, so one listener handles them all */
+            streakRail?.addEventListener("click", (e) => {
+                const link = (e.target as Element).closest<HTMLAnchorElement>("a.streak");
+                if (!link || (!snapMode.matches && !phoneMode.matches)) return;
+
+                const page = streakPages[Number(link.dataset.page)];
+                const target = page ?? document.querySelector<HTMLElement>(link.hash);
+                if (!target) return;
+
+                e.preventDefault();
+                history.replaceState(null, "", link.hash);
+                goToPanel(target);
             });
 
             const output = document.getElementById("morse");

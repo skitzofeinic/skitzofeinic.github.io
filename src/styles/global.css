@@ -1,27 +1,42 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Doto&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Doto:wght@100..900&display=swap');
 @import "tailwindcss";
 
-@layer base {
-	:root {
-		--color-background: rgb(196, 196, 196);
-		--color-text: rgb(68, 68, 68);
-		--color-primary: rgb(68, 68, 68);
-		--color-hover: rgb(33 37 41);
-		--color-hr: rgb(0 0 0);
-		--color-highlight: rgb(100, 100, 100);
-
-        --font-base: 'Roboto Mono', monospace;
-        --font-heading: 'Doto', monospace;
+/* short viewports, where a fixed header and footer leave too little room */
+@custom-variant compact {
+	@media (max-height: 500px) {
+		@slot;
 	}
+}
 
-	[data-theme="dark"] {
+@custom-variant phone {
+	@media (max-width: 767px) and (min-height: 501px) {
+		@slot;
+	}
+}
+
+@theme {
+	--font-doto: 'Doto', monospace;
+	--font-mono: 'Roboto Mono', monospace;
+}
+
+@layer base {
+	/* zaffre: the site's one and only colour scheme */
+	:root {
+		color-scheme: dark;
 		--color-background: rgb(0, 0, 255);
 		--color-text: rgb(211 211 211);
 		--color-primary: rgb(211 211 211);
 		--color-hover: rgb(255 255 255);
 		--color-hr: rgb(255 255 255);
 		--color-highlight: rgb(211 211 211);
+		/* the one loud colour: links on hover */
+		--color-link-hover: rgb(255, 40, 40);
+		/* the open-to-work diamond */
+		--color-available: rgb(40, 255, 110);
+
+        --font-base: 'Roboto Mono', monospace;
+        --font-heading: 'Doto', monospace;
 	}
 
 	body {
@@ -46,13 +61,20 @@
 	}
 
 	h2 {
-		width: fit-content;
-		text-decoration: underline;
-		font-weight: lighter;
+		font-family: var(--font-heading);
+		font-size: clamp(1.75rem, 1.4rem + 1.5vw, 2.25rem);
+		/* same thin weight as the PORTFOLIO title */
+		font-weight: 400;
+		line-height: 1.15;
+		letter-spacing: 0.02em;
 	}
 
-	a:hover {
-		color: var(--color-hover);
+	/* the one loud colour on the page: links light up red (only with a real pointer,
+	   since touch screens would leave a tapped link red) */
+	@media (hover: hover) {
+		a:hover {
+			color: var(--color-link-hover) !important;
+		}
 	}
 
 	hr {
@@ -67,9 +89,36 @@
 		font: inherit;
 		background: none;
 		border: none;
-		outline: none;
 		cursor: pointer;
 		transition: none;
+	}
+
+	:focus-visible {
+		outline: 2px solid var(--color-primary);
+		outline-offset: 2px;
+	}
+
+	/* the Three.js layer: behind everything on the page */
+	#backdrop {
+		position: fixed;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		z-index: -1;
+		pointer-events: none;
+		image-rendering: pixelated;
+	}
+
+	/* sits above everything so the header, footer and pixel reveal share the same grain */
+	body::after {
+		content: "";
+		position: fixed;
+		inset: 0;
+		z-index: 9999;
+		pointer-events: none;
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+		background-size: 240px 240px;
+		opacity: 0.22;
 	}
 
 	::selection {
@@ -77,22 +126,784 @@
 		color: var(--color-background);
 	}
 
-	.nav-link.active::before,
-	.nav-group.active > a.nav-link::before {
-		content: "";
+	/* the nav reads like the site's other labels: small, uppercase, dim until current */
+	.nav-link {
+		position: relative;
 		display: inline-block;
-		width: 4px;
-		height: 4px;
-   		border: 1px solid currentColor;
-    	background: transparent;
-		margin-right: 0.5rem;
-
-		transform: rotate(45deg) translateY(-1px);
+		padding-left: 1rem;
+		font-size: 0.8125rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		opacity: 0.6;
 	}
+
+	.nav-link.active {
+		opacity: 1;
+	}
+
+	.nav-link.active::before {
+		content: "";
+		position: absolute;
+		left: 0.15rem;
+		top: 0.45em;
+		width: 5px;
+		height: 5px;
+		border: 1px solid currentColor;
+		background: transparent;
+		transform: rotate(45deg);
+	}
+
+	/* phones: a vertical rail of section links down the left edge, the current one stretched */
+	#nav-streaks {
+		position: fixed;
+		left: 0;
+		top: 50%;
+		transform: translateY(-50%);
+		flex-direction: column;
+		/* the space between sections; screens within a section sit almost touching */
+		gap: 7px;
+		z-index: 30;
+	}
+
+	.streak-group {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.streak {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		width: 1.75rem;
+		/* half the visible gap is part of each tick's tap area */
+		padding-block: 1px;
+	}
+
+	.streak::before {
+		content: "";
+		width: 2px;
+		height: 22px;
+		background: color-mix(in srgb, currentColor 25%, transparent);
+	}
+
+	/* the other screens of the section you are in */
+	.streak.in-section::before {
+		background: color-mix(in srgb, currentColor 60%, transparent);
+	}
+
+	.streak.active::before {
+		height: 44px;
+		background: currentColor;
+	}
+
+	.name-row {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: space-between;
+		align-items: baseline;
+		gap: 0.5rem 2rem;
+	}
+
+	/* the footer's left side, in the same small label style as the rest of the site */
+	.footer-sign {
+		display: flex;
+		gap: 1.25rem;
+		font-size: 0.75rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		opacity: 0.6;
+		white-space: nowrap;
+	}
+
+	.footer-links {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem 1.5rem;
+		font-size: 0.75rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+	}
+
+	/* phones only have room for one of the two next to the links: the sign-off */
+	@media (max-width: 767px) {
+		.footer-time {
+			display: none;
+		}
+
+		.footer-links {
+			gap: 0.4rem 1rem;
+		}
+	}
+
+	/* the nav sits in the middle of the space between header and footer */
+	@media (min-width: 768px) {
+		#nav-main {
+			justify-content: center;
+		}
+	}
+
+	/* the footer repeats the quick links, so it steps aside while they are on screen */
+	footer ul {
+		transition: opacity 200ms;
+	}
+
+	.quick-links-visible footer ul {
+		opacity: 0;
+		visibility: hidden;
+	}
+
+	.quick-links {
+		display: flex;
+		gap: 1.5rem;
+		font-size: 0.9375rem;
+	}
+
+	.quick-links a {
+		text-decoration: underline;
+		text-underline-offset: 3px;
+	}
+
+	/* small uppercase label, the same style as the fact labels */
+	.label,
+	.facts dt {
+		font-family: var(--font-base);
+		font-size: 0.8125rem;
+		font-weight: 400;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--color-text);
+	}
+
+	.label {
+		opacity: 0.6;
+		margin-bottom: 0.25rem;
+	}
+
+	.panel-heading {
+		margin-bottom: 1rem;
+	}
+
+	/* every other panel: a timeline, newest first, dates in their own column on the left */
+	.entries {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.entry {
+		display: grid;
+		grid-template-columns: 13rem minmax(0, 1fr);
+		column-gap: 1.5rem;
+		padding-block: 0.6rem;
+	}
+
+	.entry + .entry {
+		border-top: 1px solid color-mix(in srgb, var(--color-hr) 15%, transparent);
+	}
+
+	.entry:first-child {
+		padding-top: 0;
+	}
+
+	.entry > .label {
+		grid-row: 1 / span 3;
+		/* lines the small date up with the first line of the title */
+		padding-top: 0.2rem;
+	}
+
+	.entry > :not(.label) {
+		grid-column: 2;
+	}
+
+	/*
+	 * Experience and education: a timeline. Each entry is as tall as it lasted, a hollow
+	 * diamond marks its start and a line runs from there to the next one.
+	 */
+	@media (min-width: 768px) {
+		.timeline {
+			/* how much height one month of time gets */
+			--month: 3.2px;
+		}
+
+		.timeline .entry {
+			position: relative;
+			min-height: calc(var(--months, 0) * var(--month));
+			/* the extra height is empty time below the entry, not gaps inside it */
+			align-content: start;
+		}
+
+		/* the line already ties the entries together */
+		.timeline .entry + .entry {
+			border-top: none;
+		}
+
+		.timeline .entry::before {
+			content: "";
+			position: absolute;
+			left: calc(13.75rem - 3px);
+			top: calc(0.6rem + 0.5em);
+			width: 6px;
+			height: 6px;
+			border: 1px solid currentColor;
+			transform: rotate(45deg);
+		}
+
+		/* from just under this diamond to just above the next one */
+		.timeline .entry::after {
+			content: "";
+			position: absolute;
+			left: 13.75rem;
+			top: calc(0.6rem + 0.5em + 12px);
+			bottom: calc(-0.6rem - 0.5em + 4px);
+			width: 1px;
+			background: color-mix(in srgb, var(--color-hr) 30%, transparent);
+		}
+
+		/* the last one has no next diamond, so its line simply ends where its time does */
+		.timeline .entry:last-child::after {
+			bottom: 0.6rem;
+		}
+
+		.timeline .entry:first-child::before {
+			top: 0.5em;
+		}
+
+		.timeline .entry:first-child::after {
+			top: calc(0.5em + 12px);
+		}
+	}
+
+	/* school projects: a compact index, one tight row per project */
+	/* year | title and one line | tools, so every row lines up like a table */
+	.entries-index .entry {
+		grid-template-columns: 13rem minmax(0, 1fr) 17rem;
+		column-gap: 2rem;
+		padding-block: 0.45rem;
+	}
+
+	.entries-index .entry > .label {
+		grid-row: 1 / span 2;
+	}
+
+	.entries-index .entry > .entry-title {
+		grid-column: 2;
+	}
+
+	/* their own column with one shared left edge: quiet, and clearly part of the row */
+	.entries-index .entry > .entry-tools {
+		grid-column: 3;
+		grid-row: 1 / span 2;
+		align-self: start;
+		margin-top: 0;
+		padding-top: 0.2rem;
+		font-size: 0.75rem;
+		line-height: 1.5;
+		opacity: 0.35;
+		transition: opacity 0.15s steps(2);
+	}
+
+	/* hovering a row lifts it a touch and brings its stack forward */
+	.entries-index .entry {
+		/* a little room either side, so the highlight does not cut into the text */
+		padding-inline: 0.6rem;
+		margin-inline: -0.6rem;
+		transition: background-color 0.15s steps(2);
+	}
+
+	.entries-index .entry:hover {
+		background-color: color-mix(in srgb, var(--color-text) 5%, transparent);
+	}
+
+	.entries-index .entry:hover > .entry-tools {
+		opacity: 0.9;
+	}
+
+	.entries-index .entry > .entry-text {
+		grid-column: 2;
+		margin-top: 0;
+		/* one line each; the detail lives in the cv */
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	/* personal projects: the strongest proof, so a card each with a headline figure */
+	.project-cards {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+		gap: 1rem;
+	}
+
+	.project-card {
+		display: flex;
+		flex-direction: column;
+		height: 100%;
+		padding: 1.25rem 1.5rem;
+		border: 1px solid color-mix(in srgb, var(--color-hr) 25%, transparent);
+	}
+
+	/* a card with a link: the link covers the whole card, and the card answers on hover */
+	.project-card-link {
+		position: relative;
+	}
+
+	.project-card-link .card-link::after {
+		content: "";
+		position: absolute;
+		inset: 0;
+	}
+
+	.project-card-link:hover {
+		border-color: var(--color-link-hover);
+	}
+
+	.project-card-link:hover .card-link {
+		color: var(--color-link-hover) !important;
+	}
+
+	/* the card reads top to bottom in three layers: name, headline figure, then detail */
+	.project-card .entry-title {
+		margin-top: 0.15rem;
+		font-size: 1.35rem;
+		line-height: 1.3;
+	}
+
+	/* the value layer of a card: below the title, above the labels and the description */
+	.project-figure {
+		margin: 1rem 0 0.2rem;
+		font-size: 1rem;
+		line-height: 1.4;
+		color: var(--color-hover);
+	}
+
+	/* three models side by side: name, score and a bar out of 100 */
+	.model-scores {
+		display: grid;
+		gap: 0.45rem;
+		margin: 1rem 0 0.5rem;
+	}
+
+	.model-scores > div {
+		display: grid;
+		grid-template-columns: 7.5rem 1fr;
+		align-items: center;
+		column-gap: 1rem;
+	}
+
+	.model-scores dt {
+		font-size: 0.8125rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		opacity: 0.6;
+	}
+
+	/* "pretrained" sits small under the name rather than beside it */
+	.model-scores dt .label-type {
+		font-size: 0.6875rem;
+	}
+
+	.model-scores dd {
+		display: grid;
+		grid-template-columns: 4.5rem 1fr;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	/* the same value layer as the other card figures; only the best one is bright */
+	.model-score {
+		font-size: 1rem;
+		line-height: 1.4;
+		color: var(--color-text);
+	}
+
+	.model-best .model-score {
+		color: var(--color-hover);
+	}
+
+	.model-bar {
+		position: relative;
+		height: 6px;
+		background: color-mix(in srgb, currentColor 12%, transparent);
+	}
+
+	/*
+	 * The filled part is built from small blocks (by the layout script) that switch on roughly
+	 * left to right with a ragged edge, the same way the text reveals, once the section is on screen.
+	 */
+	.bar-block {
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		left: var(--left);
+		width: var(--width);
+		background: color-mix(in srgb, currentColor 45%, transparent);
+		opacity: 0;
+	}
+
+	.model-best .bar-block {
+		background: currentColor;
+	}
+
+	.is-current .bar-block {
+		animation: block-on 0s var(--delay) forwards;
+	}
+
+	@keyframes block-on {
+		to {
+			opacity: 1;
+		}
+	}
+
+	.project-card .entry-text {
+		margin-top: 1rem;
+		padding-top: 1rem;
+		border-top: 1px solid color-mix(in srgb, var(--color-hr) 15%, transparent);
+	}
+
+	/* pinned to the bottom, so the tools line up across cards of the same height */
+	.project-card .entry-tools {
+		margin-top: auto;
+		padding-top: 0.6rem;
+	}
+
+	/* contact: one outlined tile per way to reach out, the whole tile a link */
+	.contact-status {
+		margin-bottom: 1rem;
+	}
+
+	.contact-tiles {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+		gap: 1rem;
+	}
+
+	.contact-tile {
+		position: relative;
+		border: 1px solid color-mix(in srgb, var(--color-hr) 25%, transparent);
+	}
+
+	/* in the middle of the tile, a large glyph for where it goes, revealed in blocks on hover */
+	.contact-tile::before {
+		content: attr(data-glyph);
+		position: absolute;
+		inset: 0;
+		display: grid;
+		place-items: center;
+		font-family: var(--font-heading);
+		font-size: clamp(4rem, 14vh, 8rem);
+		font-weight: 200;
+		line-height: 1;
+		color: var(--color-link-hover);
+		opacity: 0;
+		pointer-events: none;
+	}
+
+	/*
+	 * On hover the glyph opens from the centre outwards in small blocky steps: twelve bands,
+	 * the middle ones first, each a little ahead or behind, so the edge stays ragged.
+	 */
+	.contact-tile:hover::before {
+		opacity: 1;
+		mask-image:
+			linear-gradient(to right, transparent calc(50% - var(--glyph-reveal) + 27.5%), #000 0, #000 calc(50% + var(--glyph-reveal) - 27.5%), transparent 0),
+			linear-gradient(to right, transparent calc(50% - var(--glyph-reveal) + 25.5%), #000 0, #000 calc(50% + var(--glyph-reveal) - 25.5%), transparent 0),
+			linear-gradient(to right, transparent calc(50% - var(--glyph-reveal) + 15.5%), #000 0, #000 calc(50% + var(--glyph-reveal) - 15.5%), transparent 0),
+			linear-gradient(to right, transparent calc(50% - var(--glyph-reveal) + 16.5%), #000 0, #000 calc(50% + var(--glyph-reveal) - 16.5%), transparent 0),
+			linear-gradient(to right, transparent calc(50% - var(--glyph-reveal) + 4.5%), #000 0, #000 calc(50% + var(--glyph-reveal) - 4.5%), transparent 0),
+			linear-gradient(to right, transparent calc(50% - var(--glyph-reveal) + 3.5%), #000 0, #000 calc(50% + var(--glyph-reveal) - 3.5%), transparent 0),
+			linear-gradient(to right, transparent calc(50% - var(--glyph-reveal) + 1.5%), #000 0, #000 calc(50% + var(--glyph-reveal) - 1.5%), transparent 0),
+			linear-gradient(to right, transparent calc(50% - var(--glyph-reveal) + 10.5%), #000 0, #000 calc(50% + var(--glyph-reveal) - 10.5%), transparent 0),
+			linear-gradient(to right, transparent calc(50% - var(--glyph-reveal) + 8.5%), #000 0, #000 calc(50% + var(--glyph-reveal) - 8.5%), transparent 0),
+			linear-gradient(to right, transparent calc(50% - var(--glyph-reveal) + 19.5%), #000 0, #000 calc(50% + var(--glyph-reveal) - 19.5%), transparent 0),
+			linear-gradient(to right, transparent calc(50% - var(--glyph-reveal) + 20.5%), #000 0, #000 calc(50% + var(--glyph-reveal) - 20.5%), transparent 0),
+			linear-gradient(to right, transparent calc(50% - var(--glyph-reveal) + 31.5%), #000 0, #000 calc(50% + var(--glyph-reveal) - 31.5%), transparent 0);
+		mask-size: 100% 8.34%;
+		mask-position: 0 0%, 0 9.1%, 0 18.2%, 0 27.3%, 0 36.4%, 0 45.5%, 0 54.5%, 0 63.6%, 0 72.7%, 0 81.8%, 0 90.9%, 0 100%;
+		mask-repeat: no-repeat;
+		animation: glyph-in 0.8s steps(16) forwards;
+	}
+
+	@property --glyph-reveal {
+		syntax: "<percentage>";
+		inherits: false;
+		initial-value: 0%;
+	}
+
+	@keyframes glyph-in {
+		from {
+			--glyph-reveal: 0%;
+		}
+		to {
+			--glyph-reveal: 80%;
+		}
+	}
+
+	.contact-tile:hover {
+		border-color: var(--color-link-hover);
+	}
+
+	.contact-tile a {
+		position: relative;
+	}
+
+	/* everything in the tile takes the red every link gets on hover */
+	.contact-tile:hover a,
+	.contact-tile:hover a .label,
+	.contact-tile:hover a .contact-value {
+		color: var(--color-link-hover) !important;
+	}
+
+	.contact-tile a::after {
+		transition: transform 0.2s steps(2);
+	}
+
+	.contact-tile:hover a::after {
+		opacity: 1;
+		transform: translate(3px, -3px);
+	}
+
+	/* red only under the pointer, like any link, not when the tile around it is hovered */
+	.copy-button:hover {
+		color: var(--color-link-hover);
+		border-color: var(--color-link-hover);
+	}
+
+	.contact-tile a {
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		gap: 2.5rem;
+		/* tall columns, so the last page is a bold set of four rather than a thin strip */
+		min-height: clamp(9rem, 44vh, 26rem);
+		padding: 1rem 1.25rem 1.25rem;
+	}
+
+	/* the corner arrow says the whole tile goes somewhere */
+	.contact-tile a::after {
+		content: "↗";
+		position: absolute;
+		top: 0.8rem;
+		right: 1rem;
+		opacity: 0.6;
+	}
+
+	/* light weight and the softer text colour: large white text on blue reads as bold */
+	.contact-value {
+		font-size: 1.5rem;
+		font-weight: 300;
+		line-height: 1.3;
+		color: var(--color-text);
+		overflow-wrap: anywhere;
+	}
+
+	/* sits in the corner of the email tile, next to its arrow */
+	/* phones: a compact two by two grid, so the whole contact section fits on one screen */
+	@media (max-width: 767px) {
+		.contact-tiles {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			gap: 0.6rem;
+		}
+
+		.contact-tile a {
+			min-height: 8rem;
+			gap: 1rem;
+			padding: 0.75rem 0.8rem 0.9rem;
+		}
+
+		.contact-value {
+			font-size: 1rem;
+		}
+
+		.contact-tile a::after {
+			top: 0.6rem;
+			right: 0.7rem;
+		}
+	}
+
+	/* a bigger target than a bare word, so it is easy to hit */
+	.contact-tile .copy-button {
+		position: absolute;
+		z-index: 1;
+		top: 0.55rem;
+		right: 2.6rem;
+		padding: 0.45rem 0.9rem;
+	}
+
+	.copy-button {
+		padding: 0.2rem 0.6rem;
+		font-size: 0.8125rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--color-text);
+		border: 1px solid color-mix(in srgb, var(--color-hr) 35%, transparent);
+	}
+
+
+	@media (max-width: 767px) and (min-height: 501px) {
+		.project-cards {
+			display: block;
+		}
+
+		.entries-index .entry > .entry-text {
+			white-space: normal;
+		}
+	}
+
+	/* projects grouped by year: the year shows once and lines only fall between years */
+	.entry.same-year {
+		border-top: none;
+		padding-top: 0.25rem;
+	}
+
+	/* what kind of role, on its own line under the dates */
+	.label-type {
+		display: block;
+		opacity: 0.7;
+	}
+
+	@media (max-width: 767px) {
+		/* side by side again once the date sits above the title */
+		.label-type {
+			display: inline;
+		}
+
+		.label-type::before {
+			content: " • ";
+		}
+	}
+
+	/* phones stack the entries; the layout script turns them into one-screen pages */
+	@media (max-width: 767px) and (min-height: 501px) {
+		.entries {
+			display: block;
+		}
+
+		.entry {
+			display: block;
+		}
+
+		.entry + .entry {
+			border-top: none;
+		}
+
+		.panel-heading {
+			margin-bottom: 0;
+		}
+
+		/* no divider straight under a heading */
+		.panel-heading + .entries > .entry:first-child:not(.page-start) {
+			border-top: none;
+		}
+	}
+
+	.entry-title {
+		font-family: var(--font-base);
+		font-size: 1rem;
+		font-weight: 400;
+		line-height: 1.5;
+		color: var(--color-primary);
+	}
+
+	.entry-text {
+		margin-top: 0.15rem;
+		font-size: 0.875rem;
+		line-height: 1.5;
+		opacity: 0.75;
+	}
+
+	.entry-tools {
+		margin-top: 0.25rem;
+		font-size: 0.8125rem;
+		line-height: 1.5;
+		opacity: 0.55;
+	}
+
+	/* label above each fact, in the same columns and gaps as the skill boxes */
+	.facts {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+		gap: 0.75rem 1rem;
+		line-height: 1.5;
+	}
+
+	@media (min-width: 1100px) {
+		.facts {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+		}
+	}
+
+	/* phones stack the facts, so they get room and a divider each, like the entries */
+	@media (max-width: 767px) {
+		/* always one under the other, however wide the phone */
+		.facts {
+			grid-template-columns: minmax(0, 1fr);
+			gap: 0;
+		}
+
+		.facts > div {
+			padding-block: 0.9rem;
+		}
+
+		.facts > div + div {
+			border-top: 1px solid color-mix(in srgb, var(--color-hr) 15%, transparent);
+		}
+	}
+
+	.facts dt {
+		font-size: 0.8125rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		margin-bottom: 0.15rem;
+		opacity: 0.6;
+	}
+
+	.facts dd {
+		color: var(--color-primary);
+	}
+
+	/* the open-to-work fact: full-strength label with a blinking diamond, like the nav marker */
+	.fact-open dt,
+	.fact-open-label {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+		opacity: 1;
+	}
+
+	/* hollow, like the nav marker */
+	.fact-open dt::before,
+	.fact-open-label::before {
+		content: "";
+		flex: none;
+		width: 6px;
+		height: 6px;
+		/* the rotated square pokes out by about 1px, so this keeps it flush with the text below */
+		margin-left: 1px;
+		/* signal green: the one place on the page that says go */
+		border: 1px solid var(--color-available);
+		transform: rotate(45deg);
+		animation: open-blink 1.4s steps(1) infinite;
+	}
+
+	/* two quick flashes, then a pause: like a signal light */
+	@keyframes open-blink {
+		0%, 14%, 28%, 100% {
+			opacity: 1;
+		}
+		7%, 21% {
+			opacity: 0;
+		}
+	}
+
+	/* the specifics, on their own quieter line under the main fact */
+	.fact-detail {
+		display: block;
+		font-size: 0.875rem;
+		opacity: 0.7;
+	}
+
 
 	section p {
 		margin-top: 0.5rem;
-		max-width: 90rem;
 		line-height: 1.6;
 		color: var(--color-primary);
 		margin-bottom: 0.5rem;
@@ -103,102 +914,179 @@
 		transition-delay: 0ms !important;
 	}
 
-	section small {
+	section small,
+	section a {
 		color: var(--color-text);
 	}
 
-    .skills {
-        display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
-        gap: 2rem;
-        width: 100%;
-        margin-top: 2rem;
-    }
-
-    .sub-skills h3 {
-        font-size: 0.8rem;
-        color: var(--color-primary);
-        margin-bottom: 0.5rem;
-        letter-spacing: 0.05em;
-    }
-
-    .sub-skills ul {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-    }
-
-    .sub-skills li {
-        display: inline-flex;
-        align-items: center;
-		justify-content: space-between;
-
-        padding: 0.25rem 0.75rem;
-        border-radius: 9999px;
-
-        font-size: 0.85rem;
-        line-height: 1;
-		white-space: normal;
-		overflow-wrap: anywhere;
-
-        border: 1px solid var(--color-primary);
-        color: var(--color-text);
-        opacity: 0.85;
-    }
-
-    .sub-skills li:hover {
-        opacity: 1;
-        transform: translateY(-1px);
-
-        background-color: var(--color-text);
-		color: var(--color-background);
-
-		cursor: default;
-    }
-
-	.material-symbols-outlined {
-		vertical-align: middle;
-		font-size: 1.2em;
+	/* what each group of tools is used for, not just a list of tool names */
+	.skills {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+		grid-auto-rows: 1fr;
+		gap: 1rem;
+		width: 100%;
+		margin-top: 0.5rem;
 	}
 
-	.theme-button:hover {
-		color: var(--color-hover);
+	@media (min-width: 1100px) {
+		.skills {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+		}
 	}
 
-	.nav-group .nav-sublinks {
-		display: none;
+	.skill-box {
+		height: 100%;
+		padding: 0.75rem 1rem;
+		border: 1px solid color-mix(in srgb, var(--color-hr) 25%, transparent);
 	}
 
-	.nav-group.active .nav-sublinks {
-		display: flex;
-		flex-direction: column;
+	/* same as an entry: a regular title and quieter tags, so skills don't outshout experience */
+	.sub-skills h3 {
+		font-size: 1rem;
+		font-weight: 400;
+		line-height: 1.5;
 	}
 
-	.nav-sublink.active {
-		font-weight: 800;
+	.sub-skills small {
+		display: block;
+		margin-top: 0.25rem;
+		font-size: 0.8125rem;
+		line-height: 1.5;
+		opacity: 0.55;
 	}
 
-	.nav-sublink.active::before {
-		content: "> ";
-		opacity: 1;
+	.snap-panel {
+		padding-block: 2rem;
 	}
 
-	body[data-page="experience"] .nav-group[data-group="experience"] .nav-sublinks,
-	body[data-page="projects"] .nav-group[data-group="projects"] .nav-sublinks {
-		display: flex;
-		flex-direction: column;
+	.pixel-pending main {
+		visibility: hidden;
 	}
 
-	.nav-sublinks {
-		display: none;
-		margin-left: 0.75rem;
-		gap: 0.25rem;
-		font-size: 0.75rem;
-		opacity: 0.8;
+	/* the inverse of the compact variant: phones and short screens scroll freely */
+	@media (min-width: 768px) and (min-height: 501px) {
+		html {
+			/* scales everything down on shorter windows so each panel fits */
+			font-size: clamp(0.8125rem, 1.85vh, 1rem);
+		}
+
+		/* scrolling inside its own area keeps text from sliding under the see-through header */
+		main {
+			position: fixed;
+			top: var(--header-h, 8rem);
+			right: 0;
+			bottom: 5rem;
+			left: 0;
+			overflow-y: auto;
+			overscroll-behavior: contain;
+			scroll-snap-type: y mandatory;
+			scrollbar-width: none;
+		}
+
+		.snap-panel {
+			/* a little short of the screen, so the next section peeks in underneath */
+			min-height: calc(100vh - var(--header-h, 8rem) - 5rem - var(--peek));
+			scroll-snap-align: start;
+			scroll-snap-stop: always;
+		}
+
+		/* nothing comes after the last one, so it fills the screen */
+		.snap-panel:last-child {
+			min-height: calc(100vh - var(--header-h, 8rem) - 5rem);
+		}
+	}
+
+	/* how much of the next section shows at the bottom, as a hint to keep scrolling */
+	:root {
+		--peek: 11rem;
+	}
+
+	@media (max-width: 767px) {
+		:root {
+			--peek: 8rem;
+		}
+	}
+
+	/* the peek fades out towards the bottom */
+	@media (min-width: 768px) and (min-height: 501px), (max-width: 767px) and (min-height: 501px) {
+		main {
+			mask-image: linear-gradient(
+				to bottom,
+				#000 calc(100% - var(--peek)),
+				rgb(0 0 0 / 0.1)
+			);
+		}
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		html {
+			scroll-behavior: smooth;
+		}
+	}
+
+	/* phones snap through smaller steps, so every step has to fit one screen */
+	@media (max-width: 767px) and (min-height: 501px) {
+		html {
+			font-size: clamp(0.75rem, 1.8svh, 1rem);
+		}
+
+		main {
+			position: fixed;
+			top: var(--header-h, 6rem);
+			right: 0;
+			bottom: 3.5rem;
+			left: 0;
+			overflow-y: auto;
+			overscroll-behavior: contain;
+			scroll-snap-type: y mandatory;
+			scrollbar-width: none;
+		}
+
+		.snap-panel {
+			padding-block: 0;
+		}
+
+		/* the layout script packs these blocks into one-screen pages */
+		.snap-step {
+			box-sizing: border-box;
+			padding-block: 0.75rem;
+		}
+
+		.snap-step.page-start {
+			padding-top: 1.25rem;
+			scroll-snap-align: start;
+			scroll-snap-stop: always;
+		}
+
+		.snap-step:not(.page-start):not(.sub-skills):not(.same-year) {
+			border-top: 1px solid color-mix(in srgb, var(--color-hr) 15%, transparent);
+		}
+
+		h2 {
+			font-size: 1.5rem;
+		}
+
+		.step-divider {
+			display: none;
+		}
+
+		.skills {
+			display: block;
+			margin-top: 0;
+		}
+
+		.sub-skills.snap-step:not(.page-start) {
+			padding-block: 0.3rem;
+		}
+
+		.sub-skills.snap-step.page-start {
+			padding-bottom: 0.3rem;
+		}
+
+		.skill-box {
+			padding: 0.5rem 0.75rem;
+		}
 	}
 
 		/* CAT ENTER ANIMATION */
@@ -244,40 +1132,5 @@
 			display: none;
 		}
 
-		#nav-main.mobile-open {
-			display: flex !important;
-
-			position: fixed;
-			inset: 0 !important;
-
-			width: 100vw !important;
-			height: 100vh !important;
-
-			z-index: 100;
-
-			background-color: var(--color-background);
-
-			/* ✔ TRUE CENTERING FIX */
-			align-items: center;
-			justify-content: center;
-
-			flex-direction: column;
-
-			/* 🔥 IMPORTANT: compensate for visual header offset */
-			transform: translateY(-2vh);
-		}
-
-		#nav-main.mobile-open ul {
-			text-align: left;
-			align-items: flex-start;
-		}
-
-		#nav-main.mobile-open .nav-group {
-			align-items: center;
-		}
-
-		body.no-scroll {
-			overflow: hidden;
-		}
 	}
 }

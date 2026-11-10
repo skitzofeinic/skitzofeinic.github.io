@@ -12,12 +12,13 @@
     "astro": "astro"
   },
   "dependencies": {
+    "@astrojs/sitemap": "^3.7.4",
     "@tailwindcss/vite": "^4.2.4",
-    "astro": "^6.1.9"
+    "astro": "^6.1.9",
+    "three": "^0.187.0"
   },
   "devDependencies": {
-    "autoprefixer": "^10.5.0",
-    "postcss": "^8.5.10",
+    "@types/three": "^0.187.0",
     "tailwindcss": "^4.2.4"
   }
 }

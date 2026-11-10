@@ -2,81 +2,282 @@
 import Layout from '../layouts/layout.astro';
 ---
 
-<Layout>
-	<div class="space-y-8">
+<Layout
+	title="portfolio"
+	description="Nguyen Anh Le is a software engineering student at Amsterdam University of Applied Sciences looking for a working student role in IT, ideally AI, automation, data, or backend and frontend development."
+>
+	<div id="about" class="snap-panel" data-index="01">
 		<!-- About Me Section -->
-		<section>
-			<div class="mb-4">
-				<h2 class="text-2xl">Hi, I'm Nguyen Anh Le!</h2>
+		<section class="snap-step">
+			<!-- name on the left, the links a recruiter wants straight away on the right -->
+			<div class="name-row mb-4">
+				<h2>Nguyen Anh Le</h2>
+				<ul class="quick-links">
+					<li><a href="/Nguyen_Anh_Le_Resume.pdf" target="_blank">cv ↗</a></li>
+					<li><a href="https://github.com/skitzofeinic" target="_blank">github ↗</a></li>
+					<li><a href="https://www.linkedin.com/in/anh-le-95b840348/" target="_blank">linkedin ↗</a></li>
+					<li><a href="mailto:anhle261137@gmail.com">gmail ↗</a></li>
+				</ul>
 			</div>
-			<p class="leading-relaxed">
-				I'm a 21-year-old software engineering student at
-				<a href="https://www.hva.nl" target="_blank" class="underline">Amsterdam University of Applied Sciences (AUAS)</a>,
-				recently interned at <a href="https://aholddelhaize.com/" target="_blank" class="underline">Ahold Delhaize</a>.
-				I'm passionate about building scalable software solutions. I'm particularly interested in automation,
-				AI, data processing, and creating visually compelling applications. When I'm not coding, you'll find me
-				exploring new technologies, listening to music, hitting the gym, going for runs, watching films,
-				or diving into a good book.
-			</p>
-			<hr class="my-6" />
+			<!-- three short facts, lined up with the skill columns below so they can be scanned in seconds -->
+			<dl class="facts">
+				<div class="fact-open">
+					<dt>looking for</dt>
+					<dd>
+						working student role in IT
+						<span class="fact-detail">ai • automation • data • development</span>
+					</dd>
+				</div>
+				<div>
+					<dt>now</dt>
+					<dd>
+						IT @
+						<a href="https://www.hva.nl" target="_blank" class="underline">AUAS</a>
+						<span class="fact-detail">responsible ai semester • software engineering route</span>
+					</dd>
+				</div>
+				<div>
+					<dt>latest</dt>
+					<dd>
+						DevOps intern, TechNL Labs @
+						<a href="https://aholddelhaize.com/" target="_blank" class="underline">Ahold Delhaize</a>
+						<span class="fact-detail">computer vision • labeling automation • generative ai</span>
+					</dd>
+				</div>
+			</dl>
+			<hr class="my-6 step-divider" />
 		</section>
 
 		<!-- Skills Section -->
+		<section class="snap-step skills-heading">
+			<h3 class="label">skills</h3>
+		</section>
 		<div class="skills">
-			<div class="sub-skills">
-				<h3>frontend</h3>
-				<ul>
-					<li>Javascript</li>
-					<li>Typescript</li>
-					<li>React</li>
-					<li>Vue</li>
-				</ul>
-			</div>
-			<div class="sub-skills">
-				<h3>backend</h3>
-				<ul>
-					<li>Python</li>
-					<li>Java</li>
-					<li>Kotlin</li>
-					<li>Node.js | Express</li>
-					<li>SQL | NoSQL</li>
-					<li>Streamlit</li>
-					<li>Ollama</li>
-				</ul>
-			</div>
-			<div class="sub-skills">
-				<h3>DevOps & infra</h3>
-				<ul>
-					<li>CI/CD</li>
-					<li>Git</li>
-					<li>Kubernetes</li>
-					<li>ArgoCD</li>
-				</ul>
-			</div>
-			<div class="sub-skills">
-				<h3>methodologies</h3>
-				<ul>
-					<li>Scrum</li>
-					<li>Agile</li>
-				</ul>
-				<br />
-				<h3>language skills</h3>
-				<ul>
-					<li>Dutch</li>
-					<li>English</li>
-				</ul>
-			</div>
-			<div class="sub-skills">
-				<h3>soft skills</h3>
-				<ul>
-					<li>Quality Driven</li>
-					<li>Self-Motivated</li>
-					<li>Fostering Safe Environment</li>
-					<li>Open-Minded</li>
-					<li>Attention to Detail</li>
-					<li>Adaptable Communication & Work Style</li>
-				</ul>
-			</div>
+			<section class="sub-skills snap-step">
+				<div class="skill-box">
+					<h3>AI &amp; machine learning</h3>
+					<small>pytorch • onnx • ollama • llm integration</small>
+				</div>
+			</section>
+			<section class="sub-skills snap-step">
+				<div class="skill-box">
+					<h3>automation</h3>
+					<small>python • tesseract • ci/cd</small>
+				</div>
+			</section>
+			<section class="sub-skills snap-step">
+				<div class="skill-box">
+					<h3>data</h3>
+					<small>sql • nosql • mysql • postgres • streamlit</small>
+				</div>
+			</section>
+			<section class="sub-skills snap-step">
+				<div class="skill-box">
+					<h3>web applications</h3>
+					<small>typescript • javascript • react • vue • node.js • express • java • kotlin • spring boot</small>
+				</div>
+			</section>
+			<section class="sub-skills snap-step">
+				<div class="skill-box">
+					<h3>deployment</h3>
+					<small>docker • kubernetes • argocd • azure • git</small>
+				</div>
+			</section>
+			<section class="sub-skills snap-step">
+				<div class="skill-box">
+					<h3>ways of working</h3>
+					<small>scrum • agile • dutch • english</small>
+				</div>
+			</section>
 		</div>
+	</div>
+
+	<!--
+		every entry follows the about panel: a small label, one main line,
+		a short dimmer detail and the tools, laid out in the same three columns
+	-->
+	<div id="professional" class="snap-panel" data-index="02">
+		<section class="snap-step panel-heading">
+			<h2>experience</h2>
+		</section>
+		<div class="entries timeline">
+			<article class="entry snap-step" style="--months: 5">
+				<p class="label">feb 2026 – jul 2026<span class="label-type">internship</span></p>
+				<h3 class="entry-title">DevOps engineer intern @ Ahold Delhaize</h3>
+				<p class="entry-text">
+					TechNL Labs team. AI web apps and prototypes with generative AI for internal teams: one computer vision
+					project and one labeling automation project.
+				</p>
+				<p class="entry-tools">python • kotlin • react • typescript • ci/cd • argocd • kubernetes • azure • llm integration</p>
+			</article>
+			<article class="entry snap-step" style="--months: 8">
+				<p class="label">jun 2025 – feb 2026</p>
+				<h3 class="entry-title">production staff @ Schiphol Catering Service</h3>
+				<p class="entry-text">
+					Flight catering at Schiphol Airport: preparing meals, loading aircraft and keeping to strict hygiene and
+					safety standards in a fast-paced, regulated environment.
+				</p>
+			</article>
+		</div>
+	</div>
+
+	<div id="education" class="snap-panel" data-index="03">
+		<section class="snap-step panel-heading">
+			<h2>education</h2>
+		</section>
+		<div class="entries timeline">
+			<article class="entry snap-step" style="--months: 50">
+				<p class="label">2022 – present</p>
+				<h3 class="entry-title">IT @ Amsterdam University of Applied Sciences</h3>
+				<p class="entry-text">
+					Software engineering route, now in the responsible AI semester. Building scalable applications across the
+					full software development lifecycle.
+				</p>
+				<p class="entry-tools">java • javascript • python • ollama • streamlit • bootstrap • node.js • express • sql/nosql</p>
+			</article>
+			<article class="entry snap-step" style="--months: 60">
+				<p class="label">2017 – 2022</p>
+				<h3 class="entry-title">high school @ Tabor College Oscar Romero</h3>
+				<p class="entry-text">Havo, nature &amp; health profile (N&amp;G).</p>
+			</article>
+		</div>
+	</div>
+
+	<div id="personal" class="snap-panel" data-index="04">
+		<section class="snap-step panel-heading">
+			<h2>projects</h2>
+		</section>
+		<!-- the strongest proof gets the most room: one card per project, led by a headline figure -->
+		<div class="project-cards">
+			<article class="snap-step">
+				<div class="project-card project-card-link">
+					<p class="label">2026</p>
+					<h3 class="entry-title">
+						<!-- this link stretches over the whole card, so the card itself is clickable -->
+						<a href="https://github.com/skitzofeinic/does-ai-bin-it" target="_blank" class="underline card-link">does ai bin it? ↗</a>
+					</h3>
+					<!-- accuracy on the 380 unseen test photos, from the project README -->
+					<dl class="model-scores">
+						<div>
+							<dt>dabi 1.1</dt>
+							<dd><span class="model-score">79.5%</span><span class="model-bar" style="--score: 79.5"></span></dd>
+						</div>
+						<div class="model-best">
+							<dt>dabi 1.2</dt>
+							<dd><span class="model-score">84.0%</span><span class="model-bar" style="--score: 84"></span></dd>
+						</div>
+						<div>
+							<dt>mobilenet <span class="label-type">pretrained</span></dt>
+							<dd><span class="model-score">90.8%</span><span class="model-bar" style="--score: 90.8"></span></dd>
+						</div>
+					</dl>
+					<p class="label">accuracy on 380 unseen photos</p>
+					<p class="entry-text">
+						Dutch and English web app that puts your waste sorting up against image classifiers. DABI 1.1 and 1.2 are
+						CNNs I trained from scratch; MobileNetV3-Small is the pretrained benchmark. All three run in the browser
+						through ONNX.
+					</p>
+					<p class="entry-tools">python • pytorch • onnx runtime web • javascript</p>
+				</div>
+			</article>
+			<article class="snap-step">
+				<div class="project-card">
+					<p class="label">2026</p>
+					<h3 class="entry-title">invoice muncher</h3>
+					<p class="project-figure">pdf to data</p>
+					<p class="label">amounts • dates • vendors • VAT numbers</p>
+					<p class="entry-text">
+						Parser for invoices and financial statements: Tesseract OCR reads the PDF and Ollama pulls out the fields.
+					</p>
+					<p class="entry-tools">python • tesseract • ollama • tkinter</p>
+				</div>
+			</article>
+		</div>
+	</div>
+
+	<div id="school" class="snap-panel" data-index="05">
+		<section class="snap-step panel-heading">
+			<h2>coursework</h2>
+		</section>
+		<div class="entries entries-index">
+			<article class="entry snap-step">
+				<p class="label">2026<span class="label-type">in progress</span></p>
+				<h3 class="entry-title">ICT-praktijkzoeker</h3>
+				<p class="entry-text">
+					Search tool for IT students: docs, Q&amp;A and code with licence, reliability label and a check question per result.
+				</p>
+				<p class="entry-tools">python • nlp • model training &amp; evaluation</p>
+			</article>
+			<article class="entry snap-step">
+				<p class="label">2025</p>
+				<h3 class="entry-title">Booomtag AI dashboard</h3>
+				<p class="entry-text">
+					Fully local AI dashboard: ask a question and a local LLM analyses their data to answer it.
+				</p>
+				<p class="entry-tools">python • streamlit • ollama • mysql</p>
+			</article>
+			<article class="entry snap-step">
+				<p class="label">2024</p>
+				<h3 class="entry-title">election results site</h3>
+				<p class="entry-text">Election results dashboard with JWT authentication and a real-time discussion forum.</p>
+				<p class="entry-tools">java • spring boot • vue • jwt • docker • postgres</p>
+			</article>
+			<article class="entry snap-step same-year">
+				<h3 class="entry-title">student casino</h3>
+				<p class="entry-text">Virtual-coin casino game with a store for student items.</p>
+				<p class="entry-tools">html • css • js • php • sql</p>
+			</article>
+			<article class="entry snap-step">
+				<p class="label">2023</p>
+				<h3 class="entry-title">AUAS open day dashboard</h3>
+				<p class="entry-text">
+					Interactive map, FAQs, trial lesson sign-ups and organiser management. Tested with Cypress, managed in GitLab.
+				</p>
+				<p class="entry-tools">node.js • express • javascript • bootstrap • cypress</p>
+			</article>
+			<article class="entry snap-step">
+				<p class="label">2022</p>
+				<h3 class="entry-title">Corendon travel matching</h3>
+				<p class="entry-text">Forum-style platform for Corendon that matches older travellers so they can fly together.</p>
+				<p class="entry-tools">html • css • javascript</p>
+			</article>
+		</div>
+	</div>
+
+	<div id="contact" class="snap-panel" data-index="06">
+		<section class="snap-step panel-heading">
+			<h2>contact</h2>
+		</section>
+		<!-- one tile per way to reach out: a small label on top, the value large at the bottom -->
+		<section class="snap-step">
+			<p class="label fact-open-label contact-status">open to working student roles</p>
+			<ul class="contact-tiles" data-hides-footer>
+				<li class="contact-tile" data-glyph="@">
+					<a href="mailto:anhle261137@gmail.com">
+						<span class="label">email</span>
+						<span class="contact-value">anhle261137@gmail.com</span>
+					</a>
+					<button type="button" class="copy-button" data-copy="anhle261137@gmail.com">copy</button>
+				</li>
+				<li class="contact-tile" data-glyph="in">
+					<a href="https://www.linkedin.com/in/anh-le-95b840348/" target="_blank">
+						<span class="label">linkedin</span>
+						<span class="contact-value">Anh Le</span>
+					</a>
+				</li>
+				<li class="contact-tile" data-glyph="&lt;/&gt;">
+					<a href="https://github.com/skitzofeinic" target="_blank">
+						<span class="label">github</span>
+						<span class="contact-value">skitzofeinic</span>
+					</a>
+				</li>
+				<li class="contact-tile" data-glyph="cv">
+					<a href="/Nguyen_Anh_Le_Resume.pdf" target="_blank">
+						<span class="label">cv</span>
+						<span class="contact-value">resume.pdf</span>
+					</a>
+				</li>
+			</ul>
+		</section>
 	</div>
 </Layout>
