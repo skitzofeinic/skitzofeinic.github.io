@@ -1,17 +1,15 @@
-import {
-	Mesh,
-	NoBlending,
-	OrthographicCamera,
-	PlaneGeometry,
-	Scene,
-	ShaderMaterial,
-	Vector2,
-	Vector3,
-	WebGLRenderer,
-} from "three";
+/*
+ * The animated backdrop, in plain WebGL (no library, so nothing extra to download).
+ *
+ * It renders in two passes so it stays light:
+ * 1. the slow, expensive noise field, at a quarter of the resolution;
+ * 2. the cheap full-resolution halftone, which reads that field smoothed back up.
+ * The field is soft and large, so computing it at a quarter of the size looks the same
+ * and does about a sixteenth of the work.
+ */
 
-/* one rendered pixel covers this many CSS pixels, which gives the chunky look */
-const CELL_SIZE = 1;
+/* the noise field is computed at 1 / FIELD_SCALE of the screen resolution */
+const FIELD_SCALE = 4;
 /* the shapes drift so slowly that a low frame rate is invisible and saves battery */
 const FRAME_INTERVAL_MS = 100;
 /* while the mouse is pushing the shapes along they need a smoother frame rate */
@@ -21,24 +19,26 @@ const FLOW_PER_SCREEN = 0.05;
 /* how far one full-width sweep slides the pattern along with the mouse */
 const DRIFT_PER_SCREEN = 0.2;
 
+/* one triangle that covers the whole screen */
 const vertexShader = /* glsl */ `
+	attribute vec2 aPosition;
 	void main() {
-		gl_Position = vec4(position.xy, 0.0, 1.0);
+		gl_Position = vec4(aPosition, 0.0, 1.0);
 	}
 `;
 
-const fragmentShader = /* glsl */ `
+const fieldShader = /* glsl */ `
+	precision highp float;
+
 	uniform float uTime;
-	uniform vec2 uResolution;
-	uniform vec3 uBackground;
+	/* the smaller side of the full screen, so the shapes keep their size at any resolution */
+	uniform float uScreenMin;
 	/* a random offset per visit, so the shapes are arranged differently every time */
 	uniform vec2 uSeed;
 	/* extra animation time earned by moving the mouse, so the blobs flow while it moves */
 	uniform float uFlow;
 	/* how far the mouse has pushed the pattern, in the direction it moved */
 	uniform vec2 uDrift;
-
-	const float SHADOW = 0.6;
 
 	float hash(vec2 p) {
 		return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
@@ -66,26 +66,11 @@ const fragmentShader = /* glsl */ `
 		return value;
 	}
 
-	/* a 4 by 4 ordered (Bayer) dither threshold, between 0 and 1 */
-	float bayer2(vec2 a) {
-		a = floor(a);
-		return fract(a.x / 2.0 + a.y * a.y * 0.75);
-	}
-
-	float bayer4(vec2 a) {
-		return bayer2(0.5 * a) * 0.25 + bayer2(a);
-	}
-
 	void main() {
-		vec2 pixel = floor(gl_FragCoord.xy);
-		vec2 cell = pixel;
-		/* stretch cells sideways into blocks of mixed width: each stretch of a row picks its own */
-		float span = 12.0;
-		float choice = hash(vec2(floor(cell.x / span), cell.y) + 3.1);
-		float width = choice < 0.3 ? 1.0 : choice < 0.55 ? 2.0 : choice < 0.75 ? 3.0 : choice < 0.9 ? 4.0 : 6.0;
-		cell.x = floor(cell.x / span) * span + floor(mod(cell.x, span) / width) * width;
+		/* back in full-screen pixels, so the shapes match the halftone pass */
+		vec2 pixel = gl_FragCoord.xy * ${FIELD_SCALE.toFixed(1)};
 		/* subtracting the drift moves the pattern the same way the mouse went */
-		vec2 uv = cell / min(uResolution.x, uResolution.y) * 2.0 + uSeed - uDrift;
+		vec2 uv = pixel / uScreenMin * 2.0 + uSeed - uDrift;
 		/* a slow drift of its own, sped along by the mouse */
 		float t = uTime * 0.0006 + uFlow;
 
@@ -93,9 +78,30 @@ const fragmentShader = /* glsl */ `
 		vec2 warp = vec2(fbm(uv + t), fbm(uv - t + 4.0));
 		float field = fbm(uv + warp * 2.2 + vec2(t * 0.7, -t * 0.4));
 
-		/* a little fixed per-cell noise keeps the edges from looking machine-made */
-		float roughness = hash(cell) - 0.5;
-		float shaped = clamp((field - 0.15) / 0.32 + roughness * 0.06, 0.0, 1.0);
+		gl_FragColor = vec4(clamp((field - 0.15) / 0.32, 0.0, 1.0), 0.0, 0.0, 1.0);
+	}
+`;
+
+const halftoneShader = /* glsl */ `
+	precision highp float;
+
+	uniform sampler2D uField;
+	uniform vec2 uResolution;
+	uniform vec3 uBackground;
+
+	const float SHADOW = 0.6;
+
+	float hash(vec2 p) {
+		return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+	}
+
+	void main() {
+		vec2 pixel = floor(gl_FragCoord.xy);
+		/* the field, smoothed back up from its quarter resolution */
+		float shaped = texture2D(uField, gl_FragCoord.xy / uResolution).r;
+		/* a little fixed per-pixel noise keeps the edges from looking machine-made */
+		shaped = clamp(shaped + (hash(pixel) - 0.5) * 0.06, 0.0, 1.0);
+
 		/*
 		 * A two-colour halftone over the whole page, like newspaper print: a diagonal grid of
 		 * dark dots on zaffre, tiny in the bright areas and merging into solid dark in the
@@ -116,52 +122,108 @@ const fragmentShader = /* glsl */ `
 	}
 `;
 
+function compile(gl: WebGLRenderingContext, type: number, source: string) {
+	const shader = gl.createShader(type)!;
+	gl.shaderSource(shader, source);
+	gl.compileShader(shader);
+	if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+		throw new Error(gl.getShaderInfoLog(shader) ?? "shader did not compile");
+	}
+	return shader;
+}
+
+function program(gl: WebGLRenderingContext, fragment: string) {
+	const linked = gl.createProgram()!;
+	gl.attachShader(linked, compile(gl, gl.VERTEX_SHADER, vertexShader));
+	gl.attachShader(linked, compile(gl, gl.FRAGMENT_SHADER, fragment));
+	gl.bindAttribLocation(linked, 0, "aPosition");
+	gl.linkProgram(linked);
+	if (!gl.getProgramParameter(linked, gl.LINK_STATUS)) {
+		throw new Error(gl.getProgramInfoLog(linked) ?? "program did not link");
+	}
+	return linked;
+}
+
 function startBackdrop(canvas: HTMLCanvasElement) {
-	const renderer = new WebGLRenderer({
-		canvas,
-		alpha: true,
+	const gl = canvas.getContext("webgl", {
+		alpha: false,
 		antialias: false,
+		depth: false,
+		stencil: false,
 		powerPreference: "low-power",
 	});
-	renderer.setPixelRatio(1);
-	renderer.setClearColor(0x000000, 0);
+	if (!gl) throw new Error("no WebGL");
 
-	const material = new ShaderMaterial({
-		vertexShader,
-		fragmentShader,
-		/* the canvas paints the page background itself, so it is fully opaque */
-		blending: NoBlending,
-		depthTest: false,
-		depthWrite: false,
-		uniforms: {
-			uTime: { value: 0 },
-			uResolution: { value: new Vector2(1, 1) },
-			uBackground: { value: new Vector3() },
-			uSeed: { value: new Vector2(Math.random() * 100, Math.random() * 100) },
-			uFlow: { value: 0 },
-			uDrift: { value: new Vector2() },
-		},
-	});
+	const field = program(gl, fieldShader);
+	const halftone = program(gl, halftoneShader);
+	const at = (linked: WebGLProgram, name: string) => gl.getUniformLocation(linked, name);
+	const u = {
+		time: at(field, "uTime"),
+		screenMin: at(field, "uScreenMin"),
+		seed: at(field, "uSeed"),
+		flow: at(field, "uFlow"),
+		drift: at(field, "uDrift"),
+		fieldTexture: at(halftone, "uField"),
+		resolution: at(halftone, "uResolution"),
+		background: at(halftone, "uBackground"),
+	};
 
-	const scene = new Scene();
-	const quad = new Mesh(new PlaneGeometry(2, 2), material);
-	quad.frustumCulled = false;
-	scene.add(quad);
-	const camera = new OrthographicCamera(-1, 1, 1, -1, 0, 1);
+	/* the full-screen triangle, shared by both passes */
+	gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+	gl.enableVertexAttribArray(0);
+	gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+
+	/* the quarter-resolution field lives in a texture the halftone pass reads from */
+	const texture = gl.createTexture();
+	gl.bindTexture(gl.TEXTURE_2D, texture);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+	const framebuffer = gl.createFramebuffer();
+
+	/*
+	 * The page background colour, read from the CSS so it stays the one source. Read through
+	 * an element's computed colour, which is always rgb(): the minified build writes #00f.
+	 */
+	const probe = document.createElement("i");
+	probe.style.color = "var(--color-background)";
+	document.body.append(probe);
+	const [r, g, b] = (getComputedStyle(probe).color.match(/\d+/g) ?? ["0", "0", "255"]).map(Number);
+	probe.remove();
+	gl.useProgram(halftone);
+	gl.uniform3f(u.background, r / 255, g / 255, b / 255);
+	gl.uniform1i(u.fieldTexture, 0);
+	gl.useProgram(field);
+	gl.uniform2f(u.seed, Math.random() * 100, Math.random() * 100);
+
+	let width = 1;
+	let height = 1;
+	let fieldWidth = 1;
+	let fieldHeight = 1;
 
 	const resize = () => {
-		const width = Math.ceil(window.innerWidth / CELL_SIZE);
-		const height = Math.ceil(window.innerHeight / CELL_SIZE);
-		renderer.setSize(width, height, false);
-		material.uniforms.uResolution.value.set(width, height);
-	};
-	window.addEventListener("resize", resize);
-	resize();
+		width = Math.ceil(window.innerWidth);
+		height = Math.ceil(window.innerHeight);
+		canvas.width = width;
+		canvas.height = height;
+		fieldWidth = Math.ceil(width / FIELD_SCALE);
+		fieldHeight = Math.ceil(height / FIELD_SCALE);
 
-	/* the page background colour, read from the CSS so it stays the one source */
-	const css = getComputedStyle(document.documentElement).getPropertyValue("--color-background");
-	const [r, g, b] = (css.match(/\d+/g) ?? ["0", "0", "255"]).map(Number);
-	material.uniforms.uBackground.value.set(r / 255, g / 255, b / 255);
+		gl.bindTexture(gl.TEXTURE_2D, texture);
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, fieldWidth, fieldHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+		gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+		gl.useProgram(field);
+		gl.uniform1f(u.screenMin, Math.min(width, height));
+		gl.useProgram(halftone);
+		gl.uniform2f(u.resolution, width, height);
+		/* redraw straight away, or the stretched old frame shows until the next tick */
+		lastFrame = 0;
+	};
 
 	/*
 	 * Mouse travel is banked as flow and paid out gradually, so the blobs keep gliding
@@ -169,8 +231,11 @@ function startBackdrop(canvas: HTMLCanvasElement) {
 	 */
 	let banked = 0;
 	/* the same, but as a direction: the pattern slides the way the mouse went */
-	const bankedDrift = new Vector2();
-	const drift = material.uniforms.uDrift.value as Vector2;
+	let bankedX = 0;
+	let bankedY = 0;
+	let flow = 0;
+	let driftX = 0;
+	let driftY = 0;
 	let lastPointer: { x: number; y: number } | null = null;
 
 	window.addEventListener(
@@ -180,10 +245,9 @@ function startBackdrop(canvas: HTMLCanvasElement) {
 				const dx = (e.clientX - lastPointer.x) / window.innerWidth;
 				/* screen y grows downwards, the shader's upwards */
 				const dy = -(e.clientY - lastPointer.y) / window.innerWidth;
-				/* a full sweep across the screen moves the blobs about as far as a minute of drift */
 				banked += Math.hypot(dx, dy) * FLOW_PER_SCREEN;
-				bankedDrift.x += dx * DRIFT_PER_SCREEN;
-				bankedDrift.y += dy * DRIFT_PER_SCREEN;
+				bankedX += dx * DRIFT_PER_SCREEN;
+				bankedY += dy * DRIFT_PER_SCREEN;
 			}
 			lastPointer = { x: e.clientX, y: e.clientY };
 		},
@@ -191,23 +255,42 @@ function startBackdrop(canvas: HTMLCanvasElement) {
 	);
 
 	let lastFrame = 0;
+	window.addEventListener("resize", resize);
+	resize();
 
 	const render = (now: number) => {
 		requestAnimationFrame(render);
 		/* smooth frames while there is movement to pay out, slow frames otherwise */
-		const moving = banked > 1e-4 || bankedDrift.lengthSq() > 1e-8;
+		const moving = banked > 1e-4 || bankedX * bankedX + bankedY * bankedY > 1e-8;
 		const interval = moving ? MOVING_FRAME_INTERVAL_MS : FRAME_INTERVAL_MS;
 		if (now - lastFrame < interval) return;
 		lastFrame = now;
+
 		const payout = banked * 0.15;
 		banked -= payout;
-		material.uniforms.uFlow.value += payout;
-		const step = bankedDrift.clone().multiplyScalar(0.15);
-		bankedDrift.sub(step);
-		drift.add(step);
+		flow += payout;
+		driftX += bankedX * 0.15;
+		driftY += bankedY * 0.15;
+		bankedX *= 0.85;
+		bankedY *= 0.85;
+
+		/* pass 1: the noise field, small */
+		gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+		gl.viewport(0, 0, fieldWidth, fieldHeight);
+		gl.useProgram(field);
 		/* wrapped so shader precision never degrades on a long-open tab */
-		material.uniforms.uTime.value = (now / 1000) % 3600;
-		renderer.render(scene, camera);
+		gl.uniform1f(u.time, (now / 1000) % 3600);
+		gl.uniform1f(u.flow, flow);
+		gl.uniform2f(u.drift, driftX, driftY);
+		gl.drawArrays(gl.TRIANGLES, 0, 3);
+
+		/* pass 2: the halftone, full size, reading the field */
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		gl.viewport(0, 0, width, height);
+		gl.useProgram(halftone);
+		gl.activeTexture(gl.TEXTURE0);
+		gl.bindTexture(gl.TEXTURE_2D, texture);
+		gl.drawArrays(gl.TRIANGLES, 0, 3);
 	};
 
 	requestAnimationFrame(render);
@@ -219,7 +302,10 @@ if (canvas) {
 	try {
 		startBackdrop(canvas);
 	} catch {
-		/* without WebGL the page simply keeps its static grain */
+		/* without WebGL the page simply keeps its plain background and grain */
 		canvas.remove();
 	}
 }
+
+/* marks this file as a module, so the layout can load it with import() */
+export {};

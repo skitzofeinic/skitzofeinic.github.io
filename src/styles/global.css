@@ -1,5 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Doto:wght@100..900&display=swap');
+/* the web fonts load from the page head (see layout.astro), so they start downloading sooner */
 @import "tailwindcss";
 
 /* short viewports, where a fixed header and footer leave too little room */
@@ -29,11 +28,15 @@
 		--color-primary: rgb(211 211 211);
 		--color-hover: rgb(255 255 255);
 		--color-hr: rgb(255 255 255);
-		--color-highlight: rgb(211 211 211);
 		/* the one loud colour: links on hover */
 		--color-link-hover: rgb(255, 40, 40);
 		/* the open-to-work diamond */
 		--color-available: rgb(40, 255, 110);
+		/* small uppercase labels: a soft periwinkle, apart from the text and the signals */
+		--color-label: rgb(150, 175, 255);
+		/* tags: the kind of role (internship) and a status (in progress) */
+		--color-tag: rgb(90, 220, 230);
+		--color-status: rgb(255, 196, 70);
 
         --font-base: 'Roboto Mono', monospace;
         --font-heading: 'Doto', monospace;
@@ -50,11 +53,7 @@
         font-family: var(--font-heading);
     }
 
-	h4 {
-		font-family: var(--font-base);
-	}
-
-    h2, h3, section h4, h5, h6 {
+    h2, h3, h5, h6 {
 		font-family: var(--font-base);
 		font-weight: 700;
 		color: var(--color-primary);
@@ -63,8 +62,8 @@
 	h2 {
 		font-family: var(--font-heading);
 		font-size: clamp(1.75rem, 1.4rem + 1.5vw, 2.25rem);
-		/* same thin weight as the PORTFOLIO title */
-		font-weight: 400;
+		/* the same light weight as the name in the header */
+		font-weight: 300;
 		line-height: 1.15;
 		letter-spacing: 0.02em;
 	}
@@ -121,8 +120,28 @@
 		opacity: 0.22;
 	}
 
+	/* one solid white for every selection; dimmed text is dimmed by colour, not transparency, so it does not fade this */
+	/* for keyboard users: off screen until it gets focus */
+	.skip-link {
+		position: fixed;
+		top: 0.75rem;
+		left: 0.75rem;
+		z-index: 10000;
+		padding: 0.4rem 0.8rem;
+		font-size: 0.75rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--color-background);
+		background: var(--color-text);
+		transform: translateY(-200%);
+	}
+
+	.skip-link:focus {
+		transform: none;
+	}
+
 	::selection {
-		background-color: var(--color-primary);
+		background-color: #fff;
 		color: var(--color-background);
 	}
 
@@ -131,14 +150,40 @@
 		position: relative;
 		display: inline-block;
 		padding-left: 1rem;
-		font-size: 0.8125rem;
+		/* smaller than the selected one, which grows back to full size */
+		font-size: 0.6875rem;
 		letter-spacing: 0.08em;
 		text-transform: uppercase;
-		opacity: 0.6;
+		color: color-mix(in srgb, var(--color-text) 60%, transparent);
+	}
+
+	/* the nav: a list in page order, slid by the script so the current item stays in the middle */
+	.nav-wheel {
+		position: relative;
+		height: 12rem;
+	}
+
+	.nav-wheel li {
+		position: absolute;
+		top: 50%;
+		left: 0;
+		margin-top: -0.75em;
+		transition: transform 0.2s ease-out;
+		/* slides on the graphics card instead of repainting */
+		will-change: transform;
+	}
+
+	/* two sizes only: the current item big, every other item small */
+	.nav-link {
+		transition: font-size 0.15s ease-out;
 	}
 
 	.nav-link.active {
-		opacity: 1;
+		font-size: 0.9375rem;
+	}
+
+	.nav-link.active {
+		color: var(--color-text);
 	}
 
 	.nav-link.active::before {
@@ -196,14 +241,6 @@
 		background: currentColor;
 	}
 
-	.name-row {
-		display: flex;
-		flex-wrap: wrap;
-		justify-content: space-between;
-		align-items: baseline;
-		gap: 0.5rem 2rem;
-	}
-
 	/* the footer's left side, in the same small label style as the rest of the site */
 	.footer-sign {
 		display: flex;
@@ -211,7 +248,7 @@
 		font-size: 0.75rem;
 		letter-spacing: 0.08em;
 		text-transform: uppercase;
-		opacity: 0.6;
+		color: color-mix(in srgb, var(--color-text) 60%, transparent);
 		white-space: nowrap;
 	}
 
@@ -224,25 +261,31 @@
 		text-transform: uppercase;
 	}
 
-	/* phones only have room for one of the two next to the links: the sign-off */
+	/* phones stack the footer: the sign-off on top (without the clock), the links under it */
 	@media (max-width: 767px) {
 		.footer-time {
 			display: none;
 		}
 
 		.footer-links {
-			gap: 0.4rem 1rem;
+			gap: 0.4rem 0.9rem;
 		}
 	}
 
-	/* the nav sits in the middle of the space between header and footer */
-	@media (min-width: 768px) {
+	/* the nav sits in the middle of the whole screen (optically), which is where the eye expects it */
+	@media (min-width: 768px) and (min-height: 501px) {
 		#nav-main {
+			top: 0 !important;
+			bottom: 0 !important;
 			justify-content: center;
+			/* a little above the true middle: the optical centre, which reads as the middle */
+			/* !important: the nav's own padding class would win otherwise */
+			padding-top: 0 !important;
+			padding-bottom: 10vh !important;
 		}
 	}
 
-	/* the footer repeats the quick links, so it steps aside while they are on screen */
+	/* the footer links step aside on the contact page, which shows the same links as tiles */
 	footer ul {
 		transition: opacity 200ms;
 	}
@@ -250,17 +293,6 @@
 	.quick-links-visible footer ul {
 		opacity: 0;
 		visibility: hidden;
-	}
-
-	.quick-links {
-		display: flex;
-		gap: 1.5rem;
-		font-size: 0.9375rem;
-	}
-
-	.quick-links a {
-		text-decoration: underline;
-		text-underline-offset: 3px;
 	}
 
 	/* small uppercase label, the same style as the fact labels */
@@ -274,8 +306,9 @@
 		color: var(--color-text);
 	}
 
+	/* labels get their own colour, so they stand apart from the text they introduce */
 	.label {
-		opacity: 0.6;
+		color: var(--color-label);
 		margin-bottom: 0.25rem;
 	}
 
@@ -397,7 +430,7 @@
 		padding-top: 0.2rem;
 		font-size: 0.75rem;
 		line-height: 1.5;
-		opacity: 0.35;
+		color: color-mix(in srgb, var(--color-text) 35%, transparent);
 		transition: opacity 0.15s steps(2);
 	}
 
@@ -414,7 +447,7 @@
 	}
 
 	.entries-index .entry:hover > .entry-tools {
-		opacity: 0.9;
+		color: color-mix(in srgb, var(--color-text) 90%, transparent);
 	}
 
 	.entries-index .entry > .entry-text {
@@ -446,10 +479,12 @@
 		position: relative;
 	}
 
+	/* above everything in the card (the bars are positioned too), so every spot clicks through */
 	.project-card-link .card-link::after {
 		content: "";
 		position: absolute;
 		inset: 0;
+		z-index: 2;
 	}
 
 	.project-card-link:hover {
@@ -493,11 +528,13 @@
 		font-size: 0.8125rem;
 		letter-spacing: 0.08em;
 		text-transform: uppercase;
-		opacity: 0.6;
+		color: var(--color-label);
 	}
 
 	/* "pretrained" sits small under the name rather than beside it */
 	.model-scores dt .label-type {
+		display: block;
+		color: color-mix(in srgb, var(--color-text) 70%, transparent);
 		font-size: 0.6875rem;
 	}
 
@@ -512,6 +549,10 @@
 	.model-score {
 		font-size: 1rem;
 		line-height: 1.4;
+		color: var(--color-text);
+	}
+
+	.model-best dt {
 		color: var(--color-text);
 	}
 
@@ -581,62 +622,6 @@
 		border: 1px solid color-mix(in srgb, var(--color-hr) 25%, transparent);
 	}
 
-	/* in the middle of the tile, a large glyph for where it goes, revealed in blocks on hover */
-	.contact-tile::before {
-		content: attr(data-glyph);
-		position: absolute;
-		inset: 0;
-		display: grid;
-		place-items: center;
-		font-family: var(--font-heading);
-		font-size: clamp(4rem, 14vh, 8rem);
-		font-weight: 200;
-		line-height: 1;
-		color: var(--color-link-hover);
-		opacity: 0;
-		pointer-events: none;
-	}
-
-	/*
-	 * On hover the glyph opens from the centre outwards in small blocky steps: twelve bands,
-	 * the middle ones first, each a little ahead or behind, so the edge stays ragged.
-	 */
-	.contact-tile:hover::before {
-		opacity: 1;
-		mask-image:
-			linear-gradient(to right, transparent calc(50% - var(--glyph-reveal) + 27.5%), #000 0, #000 calc(50% + var(--glyph-reveal) - 27.5%), transparent 0),
-			linear-gradient(to right, transparent calc(50% - var(--glyph-reveal) + 25.5%), #000 0, #000 calc(50% + var(--glyph-reveal) - 25.5%), transparent 0),
-			linear-gradient(to right, transparent calc(50% - var(--glyph-reveal) + 15.5%), #000 0, #000 calc(50% + var(--glyph-reveal) - 15.5%), transparent 0),
-			linear-gradient(to right, transparent calc(50% - var(--glyph-reveal) + 16.5%), #000 0, #000 calc(50% + var(--glyph-reveal) - 16.5%), transparent 0),
-			linear-gradient(to right, transparent calc(50% - var(--glyph-reveal) + 4.5%), #000 0, #000 calc(50% + var(--glyph-reveal) - 4.5%), transparent 0),
-			linear-gradient(to right, transparent calc(50% - var(--glyph-reveal) + 3.5%), #000 0, #000 calc(50% + var(--glyph-reveal) - 3.5%), transparent 0),
-			linear-gradient(to right, transparent calc(50% - var(--glyph-reveal) + 1.5%), #000 0, #000 calc(50% + var(--glyph-reveal) - 1.5%), transparent 0),
-			linear-gradient(to right, transparent calc(50% - var(--glyph-reveal) + 10.5%), #000 0, #000 calc(50% + var(--glyph-reveal) - 10.5%), transparent 0),
-			linear-gradient(to right, transparent calc(50% - var(--glyph-reveal) + 8.5%), #000 0, #000 calc(50% + var(--glyph-reveal) - 8.5%), transparent 0),
-			linear-gradient(to right, transparent calc(50% - var(--glyph-reveal) + 19.5%), #000 0, #000 calc(50% + var(--glyph-reveal) - 19.5%), transparent 0),
-			linear-gradient(to right, transparent calc(50% - var(--glyph-reveal) + 20.5%), #000 0, #000 calc(50% + var(--glyph-reveal) - 20.5%), transparent 0),
-			linear-gradient(to right, transparent calc(50% - var(--glyph-reveal) + 31.5%), #000 0, #000 calc(50% + var(--glyph-reveal) - 31.5%), transparent 0);
-		mask-size: 100% 8.34%;
-		mask-position: 0 0%, 0 9.1%, 0 18.2%, 0 27.3%, 0 36.4%, 0 45.5%, 0 54.5%, 0 63.6%, 0 72.7%, 0 81.8%, 0 90.9%, 0 100%;
-		mask-repeat: no-repeat;
-		animation: glyph-in 0.8s steps(16) forwards;
-	}
-
-	@property --glyph-reveal {
-		syntax: "<percentage>";
-		inherits: false;
-		initial-value: 0%;
-	}
-
-	@keyframes glyph-in {
-		from {
-			--glyph-reveal: 0%;
-		}
-		to {
-			--glyph-reveal: 80%;
-		}
-	}
-
 	.contact-tile:hover {
 		border-color: var(--color-link-hover);
 	}
@@ -686,9 +671,9 @@
 		opacity: 0.6;
 	}
 
-	/* light weight and the softer text colour: large white text on blue reads as bold */
+	/* the site font at its light weight, in the softer text colour */
 	.contact-value {
-		font-size: 1.5rem;
+		font-size: 1.25rem;
 		font-weight: 300;
 		line-height: 1.3;
 		color: var(--color-text);
@@ -754,20 +739,47 @@
 		padding-top: 0.25rem;
 	}
 
-	/* what kind of role, on its own line under the dates */
-	.label-type {
-		display: block;
-		opacity: 0.7;
+	/* what kind of role or its status: a small outlined tag right after the title */
+	.entry-tag {
+		display: inline-block;
+		margin-left: 0.6rem;
+		padding: 0.05rem 0.4rem;
+		font-size: 0.6875rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		vertical-align: 0.15em;
+		line-height: 1.4;
+		/* the kind of role, in a teal of its own so it stands out against all the blue */
+		color: var(--color-tag);
+		border: 1px solid color-mix(in srgb, var(--color-tag) 60%, transparent);
 	}
 
-	@media (max-width: 767px) {
-		/* side by side again once the date sits above the title */
-		.label-type {
-			display: inline;
-		}
+	/*
+	 * A status rather than a kind of role, so it looks different too: no box, amber text and a
+	 * small hollow diamond that blinks slowly, like an activity light.
+	 */
+	.entry-tag-status {
+		padding-inline: 0;
+		color: var(--color-status);
+		border: none;
+	}
 
-		.label-type::before {
-			content: " • ";
+	/* a hollow diamond, like the other markers on the site */
+	.entry-tag-status::before {
+		content: "";
+		display: inline-block;
+		width: 6px;
+		height: 6px;
+		margin-right: 0.5rem;
+		vertical-align: 0.1em;
+		border: 1px solid currentColor;
+		transform: rotate(45deg);
+		animation: status-blink 1.6s steps(1) infinite;
+	}
+
+	@keyframes status-blink {
+		50% {
+			opacity: 0.2;
 		}
 	}
 
@@ -807,14 +819,14 @@
 		margin-top: 0.15rem;
 		font-size: 0.875rem;
 		line-height: 1.5;
-		opacity: 0.75;
+		color: color-mix(in srgb, var(--color-text) 75%, transparent);
 	}
 
 	.entry-tools {
 		margin-top: 0.25rem;
 		font-size: 0.8125rem;
 		line-height: 1.5;
-		opacity: 0.55;
+		color: color-mix(in srgb, var(--color-text) 55%, transparent);
 	}
 
 	/* label above each fact, in the same columns and gaps as the skill boxes */
@@ -853,7 +865,7 @@
 		letter-spacing: 0.08em;
 		text-transform: uppercase;
 		margin-bottom: 0.15rem;
-		opacity: 0.6;
+		color: var(--color-label);
 	}
 
 	.facts dd {
@@ -861,16 +873,15 @@
 	}
 
 	/* the open-to-work fact: full-strength label with a blinking diamond, like the nav marker */
-	.fact-open dt,
 	.fact-open-label {
 		display: flex;
 		align-items: center;
 		gap: 0.6rem;
-		opacity: 1;
+		margin-bottom: 0.5rem;
+		color: var(--color-label);
 	}
 
 	/* hollow, like the nav marker */
-	.fact-open dt::before,
 	.fact-open-label::before {
 		content: "";
 		flex: none;
@@ -898,7 +909,7 @@
 	.fact-detail {
 		display: block;
 		font-size: 0.875rem;
-		opacity: 0.7;
+		color: color-mix(in srgb, var(--color-text) 70%, transparent);
 	}
 
 
@@ -909,55 +920,158 @@
 		margin-bottom: 0.5rem;
 	}
 
-	section ul a {
-		color: var(--color-text);
-		transition-delay: 0ms !important;
-	}
-
 	section small,
 	section a {
 		color: var(--color-text);
 	}
 
-	/* what each group of tools is used for, not just a list of tool names */
+	/* what each group of tools is used for, one row per group */
 	.skills {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
-		grid-auto-rows: 1fr;
-		gap: 1rem;
 		width: 100%;
-		margin-top: 0.5rem;
+		margin-top: 0.25rem;
 	}
 
-	@media (min-width: 1100px) {
+	/*
+	 * Wider screens: one column per category, its label on top and one tool per line, so a
+	 * tool is found by glancing down one short list rather than reading across a wide row.
+	 */
+	/* spacing in steps: the SKILLS label, then each category label, then the tools under it */
+	.skills-heading .label {
+		margin-bottom: 1rem;
+	}
+
+	@media (min-width: 768px) {
 		.skills {
-			grid-template-columns: repeat(3, minmax(0, 1fr));
+			display: grid;
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+			gap: 1.25rem 1.5rem;
+		}
+
+		.sub-skills .skill-row {
+			display: block;
+			padding: 0 0 0 0.9rem;
+			border-top: none;
+			border-left: 1px solid color-mix(in srgb, var(--color-hr) 15%, transparent);
+		}
+
+		.sub-skills h3 {
+			margin-bottom: 0.4rem;
+		}
+
+		/* more specific than the phone rule further down, so one tool per line wins here */
+		.skills .sub-skills small {
+			display: flex;
+			flex-direction: column;
+			gap: 0.1rem;
+		}
+
+		/* narrow columns: long names wrap rather than being cut off */
+		.skills .sub-skills small span {
+			white-space: normal;
 		}
 	}
 
-	.skill-box {
-		height: 100%;
-		padding: 0.75rem 1rem;
-		border: 1px solid color-mix(in srgb, var(--color-hr) 25%, transparent);
+	/*
+	 * Seven across on wide screens, and on short windows where two rows would not fit the
+	 * height; otherwise two rows of four, which gives the labels room.
+	 */
+	@media (min-width: 1280px), (min-width: 900px) and (max-height: 679px) {
+		.skills {
+			grid-template-columns: repeat(7, minmax(0, 1fr));
+			column-gap: 1rem;
+		}
 	}
 
-	/* same as an entry: a regular title and quieter tags, so skills don't outshout experience */
+	/* phones: skills as rows, the label above and the tools in a few columns */
+	.skill-row {
+		display: grid;
+		grid-template-columns: 13rem minmax(0, 1fr);
+		column-gap: 1.5rem;
+		align-items: baseline;
+		padding-block: 0.55rem;
+		border-top: 1px solid color-mix(in srgb, var(--color-hr) 15%, transparent);
+	}
+
+	.sub-skills:first-child .skill-row {
+		border-top: none;
+	}
+
+	/* phones: tighter, so the whole skills block fits one screen */
+	@media (max-width: 767px) {
+		.skill-row {
+			grid-template-columns: minmax(0, 1fr);
+			row-gap: 0.15rem;
+			padding-block: 0.3rem;
+		}
+
+		.skills-heading .label {
+			margin-bottom: 0.4rem;
+		}
+
+		.sub-skills small {
+			line-height: 1.4;
+			row-gap: 0;
+		}
+	}
+
+	/* the category as a label, like the dates on the timelines */
 	.sub-skills h3 {
-		font-size: 1rem;
+		font-size: 0.8125rem;
 		font-weight: 400;
 		line-height: 1.5;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--color-label);
 	}
 
+	/* plain text in fixed columns: the rows line up like a table and scan in both directions */
 	.sub-skills small {
-		display: block;
-		margin-top: 0.25rem;
-		font-size: 0.8125rem;
+		display: grid;
+		grid-template-columns: repeat(auto-fill, 8.5rem);
+		gap: 0.15rem 0.75rem;
+		margin-top: 0;
+		font-size: 0.875rem;
 		line-height: 1.5;
-		opacity: 0.55;
+	}
+
+	.sub-skills small span {
+		color: var(--color-text);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	/* phones: narrower columns, so a row still holds a few */
+	@media (max-width: 767px) {
+		.sub-skills small {
+			grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
+		}
+
+		/* narrow columns: long names wrap instead of being cut off */
+		.sub-skills small span {
+			white-space: normal;
+		}
 	}
 
 	.snap-panel {
 		padding-block: 2rem;
+	}
+
+	/*
+	 * A section that has not been revealed yet, while another reveals (see layout.astro).
+	 * Hiding is instant; showing again fades in, so the peek at the bottom eases into view.
+	 */
+	.snap-panel {
+		transition:
+			opacity 0.5s ease-out,
+			visibility 0s,
+			--peek-fade 0.4s ease-out;
+	}
+
+	.snap-panel.veiled {
+		opacity: 0;
+		visibility: hidden;
+		transition: none;
 	}
 
 	.pixel-pending main {
@@ -1004,12 +1118,42 @@
 
 	@media (max-width: 767px) {
 		:root {
-			--peek: 8rem;
+			--peek: 7rem;
 		}
 	}
 
-	/* the peek fades out towards the bottom */
-	@media (min-width: 768px) and (min-height: 501px), (max-width: 767px) and (min-height: 501px) {
+	/*
+	 * The peek fades out downwards. The fade sits on the sections that are not current, so only
+	 * the one peeking in from below fades; the current section is never faded, however tall.
+	 */
+	@media (min-width: 768px) and (min-height: 501px) {
+		/* every section carries the fade; it is only switched on (and eased in) once not current */
+		.snap-panel {
+			mask-image: linear-gradient(
+				to bottom,
+				#000 0,
+				rgb(0 0 0 / var(--peek-fade)) var(--peek)
+			);
+		}
+
+		.snap-panel:not(.is-current) {
+			--peek-fade: 0.1;
+		}
+	}
+
+	/* a registered number, so the fade strength can be animated rather than switched */
+	@property --peek-fade {
+		syntax: "<number>";
+		inherits: false;
+		initial-value: 1;
+	}
+
+	/*
+	 * Phones pack every screen so its own content stays clear of the peek strip, so the fade can
+	 * simply sit at the bottom of the screen: it then also covers the next screen of the same
+	 * section, like the skills peeking in under the intro.
+	 */
+	@media (max-width: 767px) and (min-height: 501px) {
 		main {
 			mask-image: linear-gradient(
 				to bottom,
@@ -1035,7 +1179,8 @@
 			position: fixed;
 			top: var(--header-h, 6rem);
 			right: 0;
-			bottom: 3.5rem;
+			/* the phone footer is two rows: the sign-off, then the links */
+			bottom: 4.75rem;
 			left: 0;
 			overflow-y: auto;
 			overscroll-behavior: contain;
@@ -1076,16 +1221,8 @@
 			margin-top: 0;
 		}
 
-		.sub-skills.snap-step:not(.page-start) {
-			padding-block: 0.3rem;
-		}
-
-		.sub-skills.snap-step.page-start {
-			padding-bottom: 0.3rem;
-		}
-
-		.skill-box {
-			padding: 0.5rem 0.75rem;
+		.sub-skills.snap-step {
+			padding-block: 0;
 		}
 	}
 
