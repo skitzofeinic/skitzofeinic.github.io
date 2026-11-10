@@ -24,6 +24,11 @@
 	:root {
 		color-scheme: dark;
 		--color-background: rgb(0, 0, 170);
+		/*
+		 * The page under the backdrop: the backdrop's average tone (zaffre under its dots and
+		 * grain), because Safari fills its status bar and toolbar strips with this, not the canvas.
+		 */
+		--color-page: rgb(24, 24, 90);
 		--color-text: rgb(211 211 211);
 		--color-primary: rgb(211 211 211);
 		--color-hover: rgb(255 255 255);
@@ -43,7 +48,7 @@
 	}
 
 	body {
-		background-color: var(--color-background);
+		background-color: var(--color-page);
 		color: var(--color-text);
 		font-family: var(--font-base);
 		overflow-x: hidden;
