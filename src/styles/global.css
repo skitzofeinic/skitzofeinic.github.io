@@ -130,6 +130,19 @@
 		opacity: 0.22;
 	}
 
+	/*
+	 * iOS Safari keeps fixed elements out of its status bar and toolbar strips and fills them
+	 * with a plain colour. Phones never scroll the page itself (main scrolls), so absolute looks
+	 * the same as fixed there and is allowed under the bars. Short screens scroll the page, so
+	 * they stay fixed.
+	 */
+	@media (max-width: 767px) and (min-height: 501px) {
+		#backdrop,
+		body::after {
+			position: absolute;
+		}
+	}
+
 	/* older browsers without lvh (the build strips a plain 100vh fallback line) */
 	@supports not (height: 100lvh) {
 		#backdrop,
