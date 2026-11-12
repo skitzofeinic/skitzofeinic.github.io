@@ -783,8 +783,29 @@ if (morse) {
 	});
 }
 
+/* ---------- phones: backdrop under the status bar ---------- */
+
+/*
+ * Safari 26 only draws page content under the status bar once the page itself is scrolled,
+ * so phones keep the (otherwise locked) page scrolled down by this much; see global.css.
+ */
+const ROOT_LIFT = 96;
+
+function liftRoot() {
+	if (phoneMode.matches && Math.abs(window.scrollY - ROOT_LIFT) > 1) window.scrollTo(0, ROOT_LIFT);
+}
+
+window.addEventListener("scroll", liftRoot, { passive: true });
+window.addEventListener("resize", liftRoot);
+window.addEventListener("pageshow", liftRoot);
+phoneMode.addEventListener("change", () => {
+	if (!phoneMode.matches) window.scrollTo(0, 0);
+	liftRoot();
+});
+
 /* ---------- start ---------- */
 
+liftRoot();
 layoutPhonePages();
 pagesLaidOutFor = `${window.innerWidth}x${stableViewportHeight()}`;
 setActiveNav(true);

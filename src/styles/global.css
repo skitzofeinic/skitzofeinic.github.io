@@ -137,20 +137,23 @@
 	 * they stay fixed.
 	 */
 	@media (max-width: 767px) and (min-height: 501px) {
-		/*
-		 * The page box stops short of the status bar and the home indicator strip, so overshoot
-		 * both: start above the top and run past the bottom. Locking the page keeps the extra
-		 * from scrolling.
-		 */
+		/* the page is locked from touch; only site.ts scrolls it (see below) */
 		html {
 			overflow: hidden;
 		}
 
+		/*
+		 * Safari 26 starts the page below the status bar and fills that strip with the page
+		 * colour; content only shows under it once the page is scrolled. So the backdrop starts
+		 * at the top of the document and site.ts keeps the page scrolled down (ROOT_LIFT),
+		 * putting the top of the backdrop under the status bar. It also runs past the bottom,
+		 * under the toolbar. Everything else is fixed, so it stays put.
+		 */
 		#backdrop,
 		body::after {
 			position: absolute;
-			top: -6rem;
-			height: calc(100lvh + 21rem);
+			top: 0;
+			height: calc(100lvh + 15rem);
 		}
 	}
 
