@@ -99,8 +99,13 @@ function atScrollEnd() {
 function currentIn(targets: HTMLElement[]) {
 	if (atScrollEnd()) return targets[targets.length - 1];
 
-	/* phone screens can hold several sections, so look further down */
-	const line = window.innerHeight * (window.innerWidth < 768 ? 0.6 : 1 / 3);
+	/*
+	 * Phones snap each screen to just under the header, so the current one is the last to have
+	 * reached it (a line further down would count a short screen's follower as current).
+	 */
+	const line = phoneMode.matches
+		? (header?.offsetHeight ?? 0) + 48
+		: window.innerHeight * (window.innerWidth < 768 ? 0.6 : 1 / 3);
 	let current = targets[0];
 	for (const target of targets) {
 		if (target.getBoundingClientRect().top <= line) current = target;
